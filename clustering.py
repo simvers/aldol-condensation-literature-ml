@@ -39,6 +39,10 @@ print(centroids)
 # Cluster 2: [Si, Al, Cs, P, Na]
 # Clsuter 3: [Al, Cs, Ti, P, Ba]
 
+# --------------------------------------
+
+# Not sure what PCA and TSNE can be used for
+
 # PCA
 pca = PCA(n_components=2)
 pca_reduced_data = pca.fit_transform(composition)
