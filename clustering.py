@@ -11,6 +11,9 @@ data = pd.read_excel('data/data_clean.xlsx')
 composition = pd.read_excel('data/composition_clean.xlsx')
 print(data.head(10))
 
+# Control randomness
+np.random.seed(4321)
+
 # Cluster data
 n_cluster = np.arange(1, 16, 1)
 k_score = []
@@ -34,10 +37,20 @@ print(clustering)
 # Centroids
 centroids = pd.DataFrame(opt_cluster.cluster_centers_, columns=composition.columns)
 centroids = centroids.apply(lambda row: row.sort_values(ascending=False).index.values[:5], axis=1)
+centroids = pd.DataFrame({'Cluster composition': centroids, 'Cluster title': ['-'.join(centroid[:3]) for centroid in centroids]})
 print(centroids)
 # Cluster 1: [P, V, Ti, Si, W]
 # Cluster 2: [Si, Al, Cs, P, Na]
-# Clsuter 3: [Al, Cs, Ti, P, Ba]
+# Cluster 3: [Al, Cs, Ti, P, Ba]
+
+# Save clusters
+data_clustered = pd.concat(
+    [data, pd.DataFrame(clustering, columns=['Cluster_n'])], axis=1
+)
+for i in range(n_cluster):
+    data_clustered.loc[data_clustered['Cluster_n'] == i, 'Cluster title'] = centroids.loc[i, 'Cluster title']
+data_clustered.to_excel('data/data_clustered.xlsx', index=False)
+centroids.to_csv('data/centroids.csv', index=True)
 
 # --------------------------------------
 

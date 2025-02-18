@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 data = pd.read_excel(r"C:\Users\u0156112\OneDrive - KU Leuven\Shared_AC2GEN\Review\Review_V001\Catalysts.xlsx")
 print(data.columns)
 get_columns = ['Atom 1', 'Atom 2', 'Atom 3', 'Atom 4', 'Atom 5', 'Atom 6',
-               'Ac source', 'Fa source', 'Stabilizer', 'Ratio Ac/Fa', 'Ratio MeOH/Fa',
-               'LHSV [ml/h/g]', 'Temperature [K]', 'g cat', 'Fa mmol/min', 'Ac mmol/min',
+               'Ac source', 'Fa source', 'Stabilizer', 'Ratio Ac/Fa', 'Ratio MeOH/Fa', 'N2:O2',
+               'LHSV [ml/h/g]', 'Temperature [K]', 'Pressure [bar]', 'g cat', 'Fa mmol/min', 'Ac mmol/min',
                'STY MA+AA (mmol/h/g)']
 data = data[get_columns]
 
