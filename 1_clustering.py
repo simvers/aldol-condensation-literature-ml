@@ -32,7 +32,7 @@ plt.show()
 n_cluster = 3
 opt_cluster = KMeans(n_clusters=n_cluster)
 clustering = opt_cluster.fit_predict(composition)
-print(clustering)
+# print(clustering)
 
 # Centroids
 centroids = pd.DataFrame(opt_cluster.cluster_centers_, columns=composition.columns)
