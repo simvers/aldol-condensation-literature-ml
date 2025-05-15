@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 
 def calculate_molarflowrates(conditions):
@@ -93,6 +94,3 @@ if __name__ == "__main__":
     print(conditions.loc[0, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*1.8)
     print(conditions.loc[1, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*3)
     print(conditions.loc[2, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*1)
-
-
-

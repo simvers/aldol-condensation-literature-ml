@@ -10,7 +10,7 @@ print(data.columns)
 get_columns = ['Atom 1', 'Atom 2', 'Atom 3', 'Atom 4', 'Atom 5', 'Atom 6',
                'Ac source', 'Fa source', 'Stabilizer', 'Ratio Ac/Fa', 'Ratio Stab/Fa', 'N2:O2',
                'LHSV [ml/h/g]', 'Temperature [K]', 'Pressure [bar]', 'g cat', 'Fa mmol/min', 'Ac mmol/min',
-               'STY MA+AA (mmol/h/g)']
+               'STY MA+AA (mmol/h/g)', 'doi']
 data = data[get_columns]
 
 # Encode atom composition

@@ -15,4 +15,17 @@ The k-mean algorithm identifies 3 different catalyst families
 
 # -------------------
 
-Description should try to describe in figures what has been done so fare in the literature: what catalysts, what conditions?
+Description summarizes in figures what has been done so fare in the literature: what catalysts, what conditions?
+
+# -------------------
+
+Deactivation quantifies the deactivation of catalysts from the literature over time 
+Then, ML is used to identify the most important features that affect deactivation
+
+# -------------------
+
+Runfiles are used to run the different scripts
+
+# -------------------
+
+Utils contains useful functions that are used in the different scripts
