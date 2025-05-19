@@ -12,6 +12,8 @@ data = pd.read_excel('data/data_clean.xlsx')
 composition = pd.read_excel('data/composition_clean.xlsx')
 print(data.head(10))
 
+# Test merge
+
 # Control randomness
 np.random.seed(4321)
 
