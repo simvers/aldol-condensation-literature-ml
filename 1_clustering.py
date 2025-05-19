@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
+import sys
 
 
 # Import clean data
@@ -15,18 +16,24 @@ print(data.head(10))
 np.random.seed(4321)
 
 # Cluster data
-n_cluster = np.arange(1, 16, 1)
-k_score = []
-for i in n_cluster:
-    kmeans = KMeans(n_clusters=i)
-    kmeans.fit(composition)
-    k_score.append(kmeans.score(composition))
 
-# Plot
-plt.plot(n_cluster, np.gradient(k_score), 'DarkBlue')
-plt.xlabel('Number of clusters')
-plt.ylabel('K-means score')
+for _ in range(10):
+        
+    n_cluster = np.arange(1, 16, 1)
+    k_score = []
+    for i in n_cluster:
+        kmeans = KMeans(n_clusters=i, n_init=20)
+        kmeans.fit(composition)
+        k_score.append(kmeans.score(composition))
+
+    # Plot
+    plt.plot(n_cluster, np.gradient(k_score), 'DarkBlue')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('K-means score')
+
 plt.show()
+
+sys.exit()
 
 # Optimal clustering
 n_cluster = 3
