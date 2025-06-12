@@ -36,7 +36,7 @@ preprocessor = ColumnTransformer(transformers=[
 # The pipeline
 pipe = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('reg', XGBRegressor(verbosity = 2))
+    ('reg', XGBRegressor(verbosity = 2, nthread = 8))
 ])
 
 # Building hyperparams tuning space with BayerSearchCV
