@@ -48,6 +48,9 @@ onehot_feature_names = opt.best_estimator_.named_steps['preprocessor'] \
     .get_feature_names_out(categorical_cols)
 feature_names = numerical_cols.tolist() + onehot_feature_names.tolist()
 
+
+
+
 train_score = opt.score(X_train, y_train)
 test_score = opt.score(X_test, y_test)
 print(f"Train score:{train_score : .2f}")
@@ -58,3 +61,13 @@ sns.regplot(x=y_test, y=opt.predict(X_test), ax=ax)
 ax.text(0.2, 0.8, f"test score: {test_score : .2f}", transform=ax.transAxes)
 ax.set(xlabel="Experimental STY", ylabel="Predicted STY")
 plt.show()
+
+
+from model_IO import save_output
+
+path = './data/tmp/'
+model = "SVR"
+
+save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
+
+

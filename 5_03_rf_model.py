@@ -85,3 +85,10 @@ sns.barplot(x=importances.importances_mean[sorted_idx],
 ax.set_title("Permutation Feature Importance (Test Set)")
 plt.tight_layout()
 plt.show()
+
+from model_IO import save_output
+
+path = './data/tmp/'
+model = "rf"
+
+save_output(model, path, (X_train, y_train), (X_test, y_test), opt)

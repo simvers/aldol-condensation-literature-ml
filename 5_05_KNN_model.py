@@ -67,3 +67,10 @@ sns.regplot(x=y_test, y=opt.predict(X_test), ax=ax)
 ax.text(0.2, 0.8, f"test score: {test_score : .2f}", transform=ax.transAxes)
 ax.set(xlabel="Experimental STY", ylabel="Predicted STY")
 plt.show()
+
+from model_IO import save_output
+
+path = './data/tmp/'
+model = "knn"
+
+save_output(model, path, (X_train, y_train), (X_test, y_test), opt)

@@ -83,3 +83,10 @@ ax.invert_yaxis()
 ax.set_title("Top 20 Feature Importances")
 plt.tight_layout()
 plt.show()
+
+from model_IO import save_output
+
+path = './data/tmp/'
+model = "lightGBM"
+
+save_output(model, path, (X_train, y_train), (X_test, y_test), opt)

@@ -83,3 +83,10 @@ xgboost_model.get_booster().feature_names = feature_names
 fig, ax = plt.subplots(figsize = (10, 8))
 plot_importance(xgboost_model, grid=False, ax=ax, height=0.5)
 plt.show()
+
+from model_IO import save_output
+
+path = './data/tmp/'
+model = "xgboost"
+
+save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
