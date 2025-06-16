@@ -1,0 +1,5 @@
+{
+    "reg__n_neighbors": 3,
+    "reg__p": 1,
+    "reg__weights": "distance"
+}

@@ -12,8 +12,6 @@ data = pd.read_excel('data/data_clean.xlsx')
 composition = pd.read_excel('data/composition_clean.xlsx')
 print(data.head(10))
 
-# Test merge
-
 # Control randomness
 np.random.seed(4321)
 
@@ -35,7 +33,6 @@ for _ in range(10):
 
 plt.show()
 
-sys.exit()
 
 # Optimal clustering
 n_cluster = 3
