@@ -29,3 +29,7 @@ Runfiles are used to run the different scripts
 # -------------------
 
 Utils contains useful functions that are used in the different scripts
+
+# --------------------
+
+Files with 5 series are First phase machine lerning with the data as it is. Only feature engineering is one hot encoding of the non-numeric data.
