@@ -1,2 +1,3 @@
 doi.txt
 *.ipynb
+__pycache__
