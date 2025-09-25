@@ -14,11 +14,11 @@ import seaborn as sns
 from xgboost import plot_importance
 import numpy as np
 from model_IO import save_output
+from helpers_for_sklearn import ContinuousStratifiedKFold
 
 # configuration
 warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
-np.random.seed(8) ##############NEW############
 
 # Convergence criteria
 class ConvergenceChecker:
@@ -79,7 +79,7 @@ class OptimizationTracker:
         # Update best score
         if current_score > self.best_score:
             self.best_score = current_score
-            improvement = "New Best!"
+            improvement = "\tNew Best!"
         else:
             improvement = ""
 
@@ -103,10 +103,9 @@ if __name__=="__main__":
     df = pd.read_csv("data/tmp/processed_data.csv")
     X = df.drop(columns="STY_MA+AA_(mmol/h/g)")
     y  = df["STY_MA+AA_(mmol/h/g)"]
-
-    X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=8)
-
-
+    
+    qcut = pd.qcut(y, 5, duplicates="drop")
+    X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=27, stratify=qcut)
     # Building the pipeline
     categorical_cols = X.select_dtypes(include=['object', 'category']).columns
     numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns
@@ -120,7 +119,7 @@ if __name__=="__main__":
     # The pipeline
     pipe = Pipeline(steps=[
         ('preprocessor', preprocessor),
-        ('reg', XGBRegressor(verbosity = 0, nthread = -1, random_state = 8))
+        ('reg', XGBRegressor(verbosity = 0, nthread = -1))
     ])
 
     # Building hyperparams tuning space with BayerSearchCV
@@ -136,9 +135,10 @@ if __name__=="__main__":
         'reg__gamma': Real(0.0, 10.0)
     }
 
-    cv = KFold(n_splits=10, shuffle=True, random_state=8) ###############NEW############
+    # cv = KFold(n_splits=10, shuffle=True) ###############NEW############
+    cv = ContinuousStratifiedKFold(n_splits=5, n_iter=100, random_state=8) ###############NEW############
 
-    opt = BayesSearchCV(pipe, search_space, cv=cv, n_iter=1000, scoring='r2', random_state=8)
+    opt = BayesSearchCV(pipe, search_space, cv=10, n_iter=100, scoring='r2')
     # the callback instances
     tracker = OptimizationTracker()
     convergence_checker = ConvergenceChecker()
@@ -175,7 +175,7 @@ if __name__=="__main__":
 
 
     path = './data/tmp/'
-    model = "xgboost"
+    model = "xgboost_with_own_cv_splitter_fixed_test_train_splitter"
 
     # This will now save tracker object with all its stuff
     save_output(model, path, (X_train, y_train), (X_test, y_test), opt, tracker)
