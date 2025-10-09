@@ -1,7 +1,9 @@
-from model_IO import load_model_from_tmp
+from functions.functions_MLmodels import load_model_from_tmp
 import matplotlib.pyplot as plt
 import seaborn as sns
 plt.rcParams["font.size"] = 8
+import sklearn
+
 
 models = ["svr", "xgboost", "lightGBM", "knn", "rf"]
 fig = plt.figure(figsize=(18/2.54, 18/2.54))
@@ -17,5 +19,5 @@ for n,model in enumerate(models):
     
 
 plt.tight_layout()
-plt.savefig("figures/5_11_model_comparison.png", dpi = 600, bbox_inches='tight')
+# plt.savefig("figures/5_11_model_comparison.png", dpi = 600, bbox_inches='tight')
 plt.show()

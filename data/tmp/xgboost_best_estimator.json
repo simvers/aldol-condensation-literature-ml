@@ -1,11 +1,11 @@
 {
-    "reg__colsample_bylevel": 1.0,
-    "reg__colsample_bynode": 1.0,
-    "reg__colsample_bytree": 0.5,
+    "reg__colsample_bylevel": 0.5184618228516287,
+    "reg__colsample_bynode": 0.7382478311984814,
+    "reg__colsample_bytree": 1.0,
     "reg__gamma": 0.0,
-    "reg__learning_rate": 0.500238317219973,
+    "reg__learning_rate": 0.24402534605860313,
     "reg__max_depth": 8,
-    "reg__reg_alpha": 4.435193365158291,
-    "reg__reg_lambda": 0.0,
-    "reg__subsample": 0.8636666695254887
+    "reg__reg_alpha": 2.8035633224712035,
+    "reg__reg_lambda": 1.4861804038590731,
+    "reg__subsample": 0.8276592591651482
 }

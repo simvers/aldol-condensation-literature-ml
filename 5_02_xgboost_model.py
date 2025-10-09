@@ -36,7 +36,7 @@ preprocessor = ColumnTransformer(transformers=[
 # The pipeline
 pipe = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('reg', XGBRegressor(verbosity = 2, nthread = 8))
+    ('reg', XGBRegressor(verbosity = 0, nthread = 8))
 ])
 
 # Building hyperparams tuning space with BayerSearchCV
@@ -67,8 +67,8 @@ feature_names = numerical_cols.tolist() + onehot_feature_names.tolist()
 # print test and train score
 train_score = opt.score(X_train, y_train)
 test_score = opt.score(X_test, y_test)
-print(f"Train score:{train_score : .2f}")
-print(f"Test score:{test_score : .2f}")
+print(f"Train score:{train_score : .2f}")  # xgboost 0.94
+print(f"Test score:{test_score : .2f}")  # xgboost 0.81
 
 # Show a correlation plot between experimental and predicted values
 fig, ax = plt.subplots()
@@ -82,9 +82,12 @@ xgboost_model = opt.best_estimator_.named_steps['reg']
 xgboost_model.get_booster().feature_names = feature_names
 fig, ax = plt.subplots(figsize = (10, 8))
 plot_importance(xgboost_model, grid=False, ax=ax, height=0.5)
+ax.xaxis.label.set_size('medium')
+ax.yaxis.label.set_size('medium')
+ax.tick_params(axis='both', labelsize='medium')
 plt.show()
 
-from model_IO import save_output
+from functions.functions_MLmodels import save_output
 
 path = './data/tmp/'
 model = "xgboost"

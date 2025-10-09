@@ -1,4 +1,5 @@
 import re
+import pandas as pd
 
 
 def sorted_alphanumeric(data):
@@ -32,3 +33,18 @@ def process_doi(doi_list):
             .replace(')', '')
             .lower()  # Unify lowercase
             for doi in doi_list]
+
+
+def clean_df_deactivation(df: pd.DataFrame):
+
+    # Drop na columns
+    df.dropna(axis=1, how='all')
+    
+    # Rename columns
+    df.columns = df.columns.str.replace(' (', '_').str.strip(' )') + '_t'
+
+    return df
+
+
+# Function to safely evaluate string representations of lists
+str_to_list = lambda str_: eval(re.sub(' +', ' ', str_).replace('[ ', '[').replace(' ]', ']').replace(' ', ','))

@@ -68,7 +68,7 @@ ax.text(0.2, 0.8, f"test score: {test_score : .2f}", transform=ax.transAxes)
 ax.set(xlabel="Experimental STY", ylabel="Predicted STY")
 plt.show()
 
-from model_IO import save_output
+from functions.functions_MLmodels import save_output
 
 path = './data/tmp/'
 model = "knn"

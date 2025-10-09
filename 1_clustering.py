@@ -4,13 +4,18 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-import sys
 
 
 # Import clean data
-data = pd.read_excel('data/data_clean.xlsx')
-composition = pd.read_excel('data/composition_clean.xlsx')
-print(data.head(10))
+data = pd.read_csv('data/data_clean.csv', na_values=[''], keep_default_na=False)
+elements = pd.read_csv('data/elements.csv', header=None).squeeze('columns').to_list()
+composition = data.loc[:, elements]
+print(data.head(10), '\n', composition.head(10))
+assert composition.notna().all(axis=None)
+
+# Dummy composition
+# composition[:] = np.where(composition < 1e-10, 0, 1)
+print(composition)
 
 # Control randomness
 np.random.seed(4321)
@@ -33,9 +38,8 @@ for _ in range(10):
 
 plt.show()
 
-
 # Optimal clustering
-n_cluster = 3
+n_cluster = 4
 opt_cluster = KMeans(n_clusters=n_cluster)
 clustering = opt_cluster.fit_predict(composition)
 # print(clustering)
@@ -43,24 +47,33 @@ clustering = opt_cluster.fit_predict(composition)
 # Centroids
 centroids = pd.DataFrame(opt_cluster.cluster_centers_, columns=composition.columns)
 centroids = centroids.apply(lambda row: row.sort_values(ascending=False).index.values[:5], axis=1)
-centroids = pd.DataFrame({'Cluster composition': centroids, 'Cluster title': ['-'.join(centroid[:3]) for centroid in centroids]})
+centroids = pd.DataFrame({'Cluster_composition': centroids, 
+                          'Cluster_title': ['-'.join(centroid[:3]) for centroid in centroids],
+                          'Counts': np.unique(clustering, return_counts=True)[1]})
 print(centroids)
 # Cluster 1: [P, V, Ti, Si, W]
 # Cluster 2: [Si, Al, Cs, P, Na]
 # Cluster 3: [Al, Cs, Ti, P, Ba]
 
 # Save clusters
+# Concat cluster number
 data_clustered = pd.concat(
     [data, pd.DataFrame(clustering, columns=['Cluster_n'])], axis=1
 )
+# Concat cluster title
 for i in range(n_cluster):
-    data_clustered.loc[data_clustered['Cluster_n'] == i, 'Cluster title'] = centroids.loc[i, 'Cluster title']
-data_clustered.to_excel('data/data_clustered.xlsx', index=False)
+    data_clustered.loc[data_clustered['Cluster_n'] == i, 'Cluster_title'] = centroids.loc[i, 'Cluster_title']
+
+# Save clustered data
+data_clustered.to_csv('data/data_clustered.csv', index=False)
 centroids.to_csv('data/centroids.csv', index=True)
+print(data_clustered.head(10))
 
 # --------------------------------------
 
 # Not sure what PCA and TSNE can be used for
+
+exit()
 
 # PCA
 pca = PCA(n_components=2)

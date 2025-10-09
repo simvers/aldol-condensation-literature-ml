@@ -84,7 +84,7 @@ ax.set_title("Top 20 Feature Importances")
 plt.tight_layout()
 plt.show()
 
-from model_IO import save_output
+from functions.functions_MLmodels import save_output
 
 path = './data/tmp/'
 model = "lightGBM"

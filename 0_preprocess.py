@@ -1,37 +1,86 @@
+from pathlib import Path
 import numpy as np
 import pandas as pd
-import sklearn as sk
-import matplotlib.pyplot as plt
+from functions.functions_preprocessing import calculate_composition, calculate_molarflowrates
 
 
 # Load data and extract columns
-data = pd.read_excel(r"C:\Users\u0156112\OneDrive - KU Leuven\Shared_AC2GEN\Review\Review_V001\Catalysts.xlsx")
+path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
+# data = pd.read_excel(r"C:\Users\u0156112\OneDrive - KU Leuven\Shared_AC2GEN\Review\Catalysts.xlsx", 
+#                      na_values=['', ' '], keep_default_na=False)
+data = pd.read_excel(path, na_values=['', ' '], keep_default_na=False)
 print(data.columns)
-get_columns = ['Atom 1', 'Atom 2', 'Atom 3', 'Atom 4', 'Atom 5', 'Atom 6',
-               'Ac source', 'Fa source', 'Stabilizer', 'Ratio Ac/Fa', 'Ratio Stab/Fa', 'N2:O2',
-               'LHSV [ml/h/g]', 'Temperature [K]', 'Pressure [bar]', 'g cat', 'Fa mmol/min', 'Ac mmol/min',
-               'STY MA+AA (mmol/h/g)', 'doi']
-data = data[get_columns]
 
-# Encode atom composition
-atom_columns = ['Atom 1', 'Atom 2', 'Atom 3', 'Atom 4', 'Atom 5', 'Atom 6']
-data['Dummy'] = np.ones(len(data))
-pivoted_tables = [data.pivot_table(columns=column_i, index=data.index, values='Dummy', fill_value=0) for column_i in atom_columns]
-composition_clean = pd.concat(pivoted_tables, axis=1, sort=True).fillna(0).T.groupby(level=0).sum().T
-print(composition_clean.columns)
+# Different columns
+element_columns = ['Supp_1', 'Supp_2', 'Atom_1', 'Atom_2', 'Atom_3', 'Atom_4']
+comp_columns = ['Supp_Mass', 'Supp_Mol_1', 'Supp_Mass_Oxide_1', 'Supp_Mol_2', 'Supp_Mass_Oxide_2', 
+                'Atom_Mol_1', 'Atom_Mass_Elem_1', 'Atom_Mass_Oxide_1', 'Atom_Mol_2', 'Atom_Mass_Elem_2', 'Atom_Mass_Oxide_2', 
+                'Atom_Mol_3', 'Atom_Mass_Elem_3', 'Atom_Mass_Oxide_3', 'Atom_Mol_4', 'Atom_Mass_Elem_4', 'Atom_Mass_Oxide_4']
+get_columns = ['Ac_source', 'Fa_source', 'Stabilizer', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 
+               'O_content', 'LHSV_mlhg', 'Temperature_K', 'Pressure_bar', 'g_cat', 'Fa_mmolmin', 'Ac_mmolmin',
+               'Y_Acryl_Ac', 'Y_Acryl_Fa', 'STY_Acryl_mmolhg',
+               'doi', 'Link_to_excel']
+data = data[element_columns + comp_columns + get_columns]
+
+# ------------------------------------------------------------------------------------------------
+
+# Calculate elements molar composition
+molar_composition = calculate_composition(data[element_columns + comp_columns])
+# print(molar_composition.to_string())
+# print(molar_composition.loc[molar_composition.isna().all(axis=1), :])
+
+# Encode atom composition and save elements to csv
+elements = molar_composition.columns.to_series()
+elements.to_csv('data/elements.csv', index=False, header=False)
+print('Elements in catalysts: ', elements.to_list())
 
 # Concat encoded atom composition and rest of data
 data_clean = pd.concat(
-    [composition_clean, 
-     data[[column for column in get_columns if column not in atom_columns]]], 
+    [molar_composition, 
+     data[[column for column in get_columns]]], 
     axis=1
 )
-print(data_clean.head(10))
-
-# Save clean data
-composition_clean.to_excel('data/composition_clean.xlsx', index=False)
-data_clean.to_excel('data/data_clean.xlsx', index=False)
 
 # Most popular elements
-major_elements = composition_clean.sum(axis=0).sort_values(ascending=False)
+major_elements = molar_composition.mean(axis=0).sort_values(ascending=False)
 print(major_elements)
+
+# ------------------------------------------------------------------------------------------------
+
+# Calculate molar flowrates
+data_clean = calculate_molarflowrates(data_clean)
+
+# Overwrite stabilizer when formalin is used as Fa source
+data_clean.loc[data_clean['Fa_source'] == 'FORM', 'Stabilizer'] = 'MeOH \n + H$_2$O'
+# data_clean = data_clean.fillna({'Stabilizer': 'None', "Ratio_Stab_Fa" : 0})
+
+# Check molarflowrates
+Fa_ratio = data_clean['Fa_mmolming'] / (data_clean['Fa_mmolmin']/data_clean['g_cat'])
+Ac_ratio = data_clean['Ac_mmolming'] / (data_clean['Ac_mmolmin']/data_clean['g_cat'])
+assert (Fa_ratio.min() > 0.99) & (Fa_ratio.max() < 1.01)
+assert (Ac_ratio.min() > 0.99) & (Ac_ratio.max() < 1.01)
+
+# ------------------------------------------------------------------------------------------------
+
+# Calculate and check STY
+data_clean['STY_Acryl_mmolhg_Ac'] = data_clean['Ac_mmolming'] * data_clean['Y_Acryl_Ac'] * 60
+data_clean['STY_Acryl_mmolhg_Fa'] = data_clean['Fa_mmolming'] * data_clean['Y_Acryl_Fa'] * 60
+ratio_STY_Ac_Fa = data_clean['STY_Acryl_mmolhg_Ac']/data_clean['STY_Acryl_mmolhg_Fa']
+ratio_STY = data_clean['STY_Acryl_mmolhg_Ac']/data_clean['STY_Acryl_mmolhg']
+assert (ratio_STY_Ac_Fa.min() > 0.99) & (ratio_STY_Ac_Fa.max() < 1.01)
+assert ratio_STY.max() < 1.01  # ratio_STY.min() > 0.99, small inconsistency for doi 10.2139/ssrn.4741336
+
+# Check number of missing STY
+no_STY_Ac = data_clean['STY_Acryl_mmolhg_Ac'].isna()
+no_STY_Fa = data_clean['STY_Acryl_mmolhg_Fa'].isna()
+no_STY = data_clean['STY_Acryl_mmolhg'].isna()
+assert (no_STY_Ac == no_STY_Fa).all()
+assert (no_STY_Ac == no_STY).all  # no_STY_Ac == 82
+
+# ------------------------------------------------------------------------------------------------
+
+# Save clean data
+# molar_composition.to_csv('data/molar_composition.csv', index=False)
+data_clean.to_csv('data/data_clean.csv', index=False)
+
+print(data_clean.head(10))

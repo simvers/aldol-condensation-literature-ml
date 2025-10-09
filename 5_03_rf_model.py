@@ -35,7 +35,7 @@ preprocessor = ColumnTransformer(transformers=[
 # The pipeline
 pipe = Pipeline(steps=[
     ('preprocessor', preprocessor),
-    ('reg', RandomForestRegressor(random_state=8, n_jobs=-1, verbose=1))
+    ('reg', RandomForestRegressor(random_state=8, n_jobs=-1, verbose=0))
 ])
 
 # Hyperparameter tuning space with BayesSearchCV
@@ -47,7 +47,7 @@ search_space = {
     'reg__max_features': Real(0.3, 1.0)
 }
 
-opt = BayesSearchCV(pipe, search_space, cv=10, n_iter=50, scoring='r2', random_state=8)
+opt = BayesSearchCV(pipe, search_space, cv=10, n_iter=100, scoring='r2', random_state=8)
 
 # Executing the pipeline with train_data
 opt.fit(X_train, y_train)
@@ -62,8 +62,8 @@ feature_names = numerical_cols.tolist() + onehot_feature_names.tolist()
 # Print test and train score
 train_score = opt.score(X_train, y_train)
 test_score = opt.score(X_test, y_test)
-print(f"Train score:{train_score : .2f}")
-print(f"Test score:{test_score : .2f}")
+print(f"Train score:{train_score : .2f}")  # 0.93
+print(f"Test score:{test_score : .2f}")  # 0.87
 
 # Correlation plot
 fig, ax = plt.subplots()
@@ -86,9 +86,9 @@ ax.set_title("Permutation Feature Importance (Test Set)")
 plt.tight_layout()
 plt.show()
 
-from model_IO import save_output
+from functions.functions_MLmodels import save_output
 
 path = './data/tmp/'
 model = "rf"
 
-save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
+# save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
