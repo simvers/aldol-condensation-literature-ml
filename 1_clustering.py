@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 
 
 # Import clean data
-data = pd.read_csv('data/data_clean.csv', na_values=[''], keep_default_na=False)
+data = pd.read_csv('data/data_processed.csv', na_values=[''], keep_default_na=False)
 elements = pd.read_csv('data/elements.csv', header=None).squeeze('columns').to_list()
 composition = data.loc[:, elements]
 print(data.head(10), '\n', composition.head(10))

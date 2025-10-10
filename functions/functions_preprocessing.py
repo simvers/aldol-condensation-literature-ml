@@ -65,9 +65,6 @@ def calculate_composition(compositions):
     # Mass percentage of oxide, relative to total catalyst oxide mass
     mass_composition.loc[indices, atom_content] += compositions.loc[indices, atom_oxs].mul(compositions.loc[indices, 'Supp_Mass'], axis=0).fillna(0).values
 
-    # Missing support content
-    # print(compositions.loc[compositions['Supp_Mass'].isna(), ['Supp_Mass', 'Supp_1', 'Atom_1']].to_string())
-
     # ------------------------------------------------------------------------------------------------
 
     # Transform molar ratio of support to mass percentage of oxide, relative to total support oxide mass
@@ -156,7 +153,7 @@ def calculate_molarflowrates(conditions):
     stab_properties = pd.read_json('data/mol_properties/stab_properties.json')
 
     # Initialize new columns
-    conditions = conditions.reindex(conditions.columns.tolist() + ['Density','Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming'], axis=1)
+    conditions = conditions.reindex(conditions.columns.tolist() + ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming'], axis=1)
 
     # Initialize missing values
     missing_values, missing_source, missing_ratio, missing_lhsv = 0, 0, 0, 0
@@ -179,10 +176,10 @@ def calculate_molarflowrates(conditions):
             fa = fa_properties.loc[fa_properties['Compound'] == condition['Fa_source']].iloc[0]
             stab = stab_properties.loc[stab_properties['Compound'] == condition['Stabilizer']].iloc[0]
 
-            # Calculate mass and volume of reactant mixture that contains 1 mol of Ac
-            mass_molac = ac['MW']/ac['Purity'] + fa['MW']/fa['Purity']/condition['Ratio_Ac_Fa'] + stab['MW']/stab['Purity']*condition['Ratio_Stab_Fa']/condition['Ratio_Ac_Fa']
+            # Calculate volume of reactant mixture that contains 1 mol of Ac
             vol_molac = ac['MW']/ac['Purity']/ac['Density'] + fa['MW']/fa['Purity']/condition['Ratio_Ac_Fa']/fa['Density'] + stab['MW']/stab['Purity']*condition['Ratio_Stab_Fa']/condition['Ratio_Ac_Fa']/stab['Density']
-            conditions.loc[i, 'Density'] = mass_molac/vol_molac
+            # mass_molac = ac['MW']/ac['Purity'] + fa['MW']/fa['Purity']/condition['Ratio_Ac_Fa'] + stab['MW']/stab['Purity']*condition['Ratio_Stab_Fa']/condition['Ratio_Ac_Fa']
+            # conditions.loc[i, 'Density'] = mass_molac/vol_molac
 
             # Calculate the molar flowrate in mmol/min/g
             ac_mmolming = condition['LHSV_mlhg']/vol_molac/60*1000
@@ -191,11 +188,42 @@ def calculate_molarflowrates(conditions):
             water_mmolming = fa_mmolming*condition['Ratio_Stab_Fa'] if condition['Stabilizer'] == 'Water' else 0
 
             # If formalin is used, consider the methanol (13wt.%) and water (100-37-13wt.%) present in it
-            if condition['Fa_source'] == 'Formalin':
-                meoh_mmolming += fa_mmolming*fa['MW']/fa['Purity']*0.13/stab_properties.loc[stab_properties['Compound'] == 'Methanol', 'MW'].iloc[0]
+            if condition['Fa_source'] == 'FORM':
+                meoh_mmolming += fa_mmolming*fa['MW']/fa['Purity']*0.13/stab_properties.loc[stab_properties['Compound'] == 'MeOH', 'MW'].iloc[0]
                 water_mmolming += fa_mmolming*fa['MW']/fa['Purity']*(1-0.37-0.13)/stab_properties.loc[stab_properties['Compound'] == 'Water', 'MW'].iloc[0]
             
             conditions.loc[i, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']] = ac_mmolming, fa_mmolming, meoh_mmolming, water_mmolming
+
+
+    # Overwrite stabilizer when formalin is used as Fa source
+    conditions.loc[conditions['Fa_source'] == 'FORM', 'Stabilizer'] = 'MeOH + H$_2$O'
+    # conditions = conditions.fillna({'Stabilizer': 'None', "Ratio_Stab_Fa" : 0})
+
+    # Calculate STY
+    conditions['STY_Acryl_mmolhg'] = conditions['Ac_mmolming'] * conditions['Y_Acryl_Ac'] * 60
+
+    # ------------------------------------------------------------------------------------------------
+    
+    # Check molarflowrates
+    if all(col in conditions.columns for col in ['Fa_mmolmin', 'g_cat']):
+        Fa_ratio = conditions['Fa_mmolming'] / (conditions['Fa_mmolmin']/conditions['g_cat'])
+        Ac_ratio = conditions['Ac_mmolming'] / (conditions['Ac_mmolmin']/conditions['g_cat'])
+        assert (Fa_ratio.min() > 0.99) & (Fa_ratio.max() < 1.01)
+        assert (Ac_ratio.min() > 0.99) & (Ac_ratio.max() < 1.01)
+
+    # Check STY and yield ratio
+    sty_acryl_mmolhg = conditions['Fa_mmolming'] * conditions['Y_Acryl_Fa'] * 60
+    ratio_STY_Ac_Fa = conditions['STY_Acryl_mmolhg']/sty_acryl_mmolhg
+    assert (ratio_STY_Ac_Fa.min() > 0.99) & (ratio_STY_Ac_Fa.max() < 1.01)
+
+    # Check STY
+    if 'STY_Acryl_mmolhg_manual' in conditions.columns:
+        # Check values
+        ratio_STY = conditions['STY_Acryl_mmolhg']/conditions['STY_Acryl_mmolhg_manual']
+        assert ((ratio_STY.max() < 1.01) & (ratio_STY.min() > 0.99))
+
+        # Check number of missing STY
+        assert (conditions['STY_Acryl_mmolhg'].isna() == conditions['STY_Acryl_mmolhg_manual'].isna()).all  # no_STY == 82
 
     # Print report of missing values
     print('Number of missing values: ', missing_values)
@@ -219,40 +247,18 @@ if __name__ == "__main__":
 
     # Define Fa properties
     fa_properties = pd.DataFrame({
-        "Compound": ['DMM', 'Formalin', 'Trioxane'],
-        "MW": [76.09, 30.03, 30.03],
-        "Density": [0.86, 1.09, 1000],
-        "Purity": [1, 0.37, 1]
+        "Compound": ['DMM', 'FORM', 'TRX', 'MeOH'],
+        "MW": [76.09, 30.03, 30.03, 32.04],
+        "Density": [0.86, 1.09, 1000, 0.79],
+        "Purity": [1, 0.37, 1, 1]
     })
     fa_properties.to_json('data/mol_properties/fa_properties.json')
 
     # Define stab proeprties
     stab_properties = pd.DataFrame({
-        "Compound": ['Water', 'Methanol', 'Ethanol', 'None'],
+        "Compound": ['Water', 'MeOH', 'EtOH', 'None'],
         "MW": [18.02, 32.04, 46.07, 1],
         "Density": [1, 0.79, 0.79, 1],
         "Purity": [1, 1, 1, 1]
     })
     stab_properties.to_json('data/mol_properties/stab_properties.json')
-
-    # Define mock conditions
-    conditions = pd.DataFrame({
-        "Ac_source": ['MAc', 'HAc', 'HAc'],
-        "Fa_source": ['Trioxane', 'DMM', 'DMM'],
-        "Stabilizer": ['Methanol', 'None', 'None'],
-        "Ratio_Ac_Fa": [1, 2.5, 0],
-        "Ratio_Stab_Fa": [2, 0, 0],
-        "LHSV_mlhg": [3.08, 0.44, pd.NA],
-        "g_cat": [1.8, 3, pd.NA]
-    })
-
-    # MAc	Trioxane	Methanol	1	2	/	3.08	633	1	1.8	0.575714004	0.575714004	0.699607657
-    # HAc	DMM	/	2.5	0	97.75:2.25	0.44	633	1	3	0.094995781	0.237489453	0.847362367
-
-    # Calculate molar flowrates
-    conditions = calculate_molarflowrates(conditions=conditions)
-
-    # Print result
-    print(conditions.loc[0, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*1.8)
-    print(conditions.loc[1, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*3)
-    print(conditions.loc[2, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']]*1)
