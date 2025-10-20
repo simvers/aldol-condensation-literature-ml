@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mplt
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score, root_mean_squared_error
+from scipy.stats import linregress
 
 
 def power_law_model_3(t, STY_0, n, STY_inf):
     # return (STY_0) / (1 + t)**n + STY_inf
-    return (STY_0 - STY_inf) / (1 + t)**n + STY_inf
+    return STY_0 / (1 + t)**n + STY_inf
 
 
 def power_law_model_2(*args):
@@ -15,8 +16,7 @@ def power_law_model_2(*args):
 
 
 def exp_model_3(t, STY_0, n, STY_inf):
-    # return STY_0 * np.exp(- n * t) + STY_inf
-    return (STY_0 - STY_inf) * np.exp(- n * t) + STY_inf
+    return STY_0 * np.exp(- n * t) + STY_inf
 
 
 def exp_model_2(*args):
@@ -24,7 +24,7 @@ def exp_model_2(*args):
 
 
 def langmuir_model_3(t, STY_0, n, STY_inf):
-    return (STY_0 - STY_inf) / (1 + n*t) + STY_inf
+    return STY_0 / (1 + n*t) + STY_inf
 
 
 def langmuir_model_2(*args):
@@ -64,12 +64,14 @@ def fit_model(t, sty, model, p0, bounds):
         nrmse = 0
         return popt, perr, cv, pcorr, r2, nrmse
 
+    # Fit linear regression
+    slope, intercept, _, _, _ = linregress(t, sty)
+
     # Facilitate convergence with bounds and initialization
-    sty_max = sty.max()
-    p0[0] = sty_max  # Initial STY value
-    bounds[1][0] = sty_max*5 + 0.1  # Max STY_0 value
+    p0[0] = intercept  # Intercept of linreg as initial STY value
+    bounds[1][0] = intercept*2 + 0.1  # Max STY_0 value
     if len(p0) >= 3:
-        bounds[1][-1] = sty_max*5 + 0.1  # Mac STY_inf value
+        bounds[1][-1] = intercept*2 + 0.1  # Max STY_inf value
         p0[-1] = sty.min()
     
     # Fit function

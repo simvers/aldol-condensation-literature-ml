@@ -106,7 +106,7 @@ def merge_conditions_deactivation(data_conditions, doi_list, sheet_list, df_deac
 
         # Identify missing lhsv
         if data_conditions.loc[index, ['Ac_mmolming', 'Fa_mmolming']].isna().any():
-            print(doi, sheet, '\n', data_conditions.loc[index, ['Ac_mmolming', 'Ac_mmolmin', 'Fa_mmolming', 'Fa_mmolmin']])
+            print(doi, sheet)  #, '\n', data_conditions.loc[index, ['Ac_mmolming', 'Ac_mmolmin', 'Fa_mmolming', 'Fa_mmolmin']])
         
         # Calculate STY if missing and check it is the same from Ac and Fa
         elif 'STY_Acryl_mmolhg_t' not in df.columns:

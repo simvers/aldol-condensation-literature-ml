@@ -11,13 +11,9 @@ from functions.deactivation_models import *
 
 # Import digitized data
 
-# Option 1: Single dataframe with time-dependent data as list in a cell
-# Option 2: Two dataframes (metadata and time-dependent data) linked by doi_sheetname 
-# with time-dependent data in a long format
-
 # Directory with digitized data in xlsx files
-# path = Path('C:\\Users\\u0156112\\OneDrive - KU Leuven\\Shared_AC2GEN\\Review\\DigitizedData\\')
-path = "/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/DigitizedData/"
+path = 'C:\\Users\\u0156112\\OneDrive - KU Leuven\\Shared_AC2GEN\\Review\\DigitizedData\\'
+# path = "/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/DigitizedData/"
 
 # Import all excel files as directory, and expand the directory to a list of df
 doi_digitized, sheet_digitized, df_digitized = extract_df_deactivation_from_excel(path)
@@ -29,6 +25,7 @@ print('Number of deactivation files: ', len(df_digitized))
 # Import clustered data
 data_clustered = pd.read_csv('data/data_clustered.csv')
 data_clustered['doi'] = process_doi(data_clustered['doi'])
+initial_columns = data_clustered.columns.to_list()
 
 # ------------------------------------------------------------------------------------------------
 
@@ -50,7 +47,7 @@ print('DOI to process digitally', len(doi_temp), doi_temp)
 # ------------------------------------------------------------------------------------------------
 
 # Merge data_clustered with list of df_deactivation
-# Creating time-dependent performance columns, conatining numpy arrays
+# Creating time-dependent performance columns, containing numpy arrays
 data_clustered = merge_conditions_deactivation(data_clustered, doi_digitized, sheet_digitized, df_digitized)
 
 # ------------------------------------------------------------------------------------------------
@@ -95,7 +92,7 @@ if basic_statistics:
 # ------------------------------------------------------------------------------------------------
 
 # Different models
-n=1
+n, coef = 1, 10
 models = {
     'pow3': {'func': power_law_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n, 50]), 
              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
@@ -105,17 +102,19 @@ models = {
              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))}, 
     'exp2': {'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
-    'lan3': {'func': langmuir_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n, 50]), 
+    'lan3': {'func': langmuir_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, coef, 50]), 
              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
-    'lan2': {'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n]), 
+    'lan2': {'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, coef]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))}
 }
 
 for name, spec in models.items():
 
     # Initialize columns
-    data_deactivation.loc[:, [name + '_r2', name + '_nrmse']] = np.nan
-    data_deactivation.loc[:, [name + '_param', name + '_perr', name + '_cv', name + '_pcorr']] = pd.NA
+    # data_deactivation.loc[:, [name + '_r2', name + '_nrmse']] = np.nan
+    data_deactivation.loc[:, name + '_nrmse'] = np.nan
+    # data_deactivation.loc[:, [name + '_param', name + '_perr', name + '_cv', name + '_pcorr']] = pd.NA
+    data_deactivation.loc[:, [name + '_param', name + '_STY0', name + '_n']] = pd.NA
 
     # Fit deactivation models
     for i, row in data_deactivation.iterrows():
@@ -129,10 +128,11 @@ for name, spec in models.items():
 
         # Add fitted model to deactivation data
         data_deactivation.at[i, f'{name}_param'] = popt
-        data_deactivation.at[i, f'{name}_perr'] = perr
-        data_deactivation.at[i, f'{name}_perr'] = cv
-        data_deactivation.at[i, f'{name}_pcorr'] = pcorr
-        data_deactivation.at[i, f'{name}_r2'] = r2
+        data_deactivation.loc[i, [f'{name}_STY0', f'{name}_n']] = popt[0:2]
+        # data_deactivation.at[i, f'{name}_perr'] = perr
+        # data_deactivation.at[i, f'{name}_cv'] = cv
+        # data_deactivation.at[i, f'{name}_pcorr'] = pcorr
+        # data_deactivation.at[i, f'{name}_r2'] = r2
         data_deactivation.at[i, f'{name}_nrmse'] = nrmse
 
         # Add fitted model to model data
@@ -153,13 +153,6 @@ alpha = [0.5, 1, 0.5, 1, 0.5, 1]
 
 plot = True
 if plot:
-    # KDE plot of R2 values
-    # plt.figure(figsize=(6, 4))
-    # plt.title('R_squared')
-    # for i, name in enumerate(models.keys()):
-    #     sns.kdeplot(data_deactivation[f'{name}_r2'], color=colors[i], alpha=alpha[i], label=name, cut=0)
-    # plt.legend()
-    # plt.show()
 
     # KDE plot of NRMSE values
     fig, ax = plt.subplots(1, 1, figsize=(6, 4))
@@ -197,7 +190,7 @@ if plot:
             sns.scatterplot(ax=ax[j], x=models.get(name).get('param')[:, j], y=models.get(name).get('perr')[:, j], color=colors[i], alpha=alpha[i], label=name)
     ax[0].legend(frameon=False, bbox_to_anchor=(0, 1.02), loc='lower left', ncols=6), ax[1].legend().remove(), ax[2].legend().remove()
     ax[0].set(xlabel='STY_0', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
-    ax[1].set(xlabel='n', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, 1), ylim=(0, None))
+    ax[1].set(xlabel='n', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
     ax[2].set(xlabel='STY_inf', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
     fig.savefig('figures/deactivation_modelling/Error_scatterplot.png', dpi=600)
 
@@ -228,11 +221,26 @@ if plot:
 
 # ------------------------------------------------------------------------------------------------
 
+# Save data
+best_model = 'lan2'
+data_deactivation.rename(columns={best_model + '_STY0': 'STY0', best_model + '_n': 'n'}).loc[:, initial_columns + ['STY0', 'n']].to_csv('data/data_deactivation.csv', index=False)
+
+# ------------------------------------------------------------------------------------------------
+
 exit()
 
+# Find index to plot
+my_array = models.get('lan2').get('param')[:, 1]
+index = np.where(my_array > 1e10)[0]
+index = np.where(my_array < 0.0001)[0]
+
+# Get rows
+selected_data = data_deactivation.iloc[index, :]
+# print(selected_data.to_string())
+
 # Plot all deactivation curves
-for i in range(len(data_deactivation)):
-    series = data_deactivation.iloc[i, :]
+for i in range(len(selected_data)):
+    series = selected_data.iloc[i, :]
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.scatter(series['Time_h_t'], series['STY_Acryl_mmolhg_t'], marker='o')
     for name, spec in models.items():
@@ -242,11 +250,3 @@ for i in range(len(data_deactivation)):
     ax.legend()
     plt.show()
 
-# ------------------------------------------------------------------------------------------------
-
-exit()
-
-# Checks
-print(data_clustered['Ac_mmolming'].isna().sum())  # 90
-print(data_clustered['Fa_mmolming'].isna().sum())
-print((data_clustered['Fa_mmolming'].isna() & data_clustered['Ac_mmolming'].isna()).sum())

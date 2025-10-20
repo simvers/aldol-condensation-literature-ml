@@ -21,7 +21,7 @@ model_config = {
             'reg__reg_lambda': Real(0.0, 10.0),
             'reg__gamma': Real(0.0, 10.0)
         },
-        "func_feature_importance": [functions_MLmodels.gboost_feature_importance]
+        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     },
 
     "rf": {
@@ -69,6 +69,6 @@ model_config = {
             'reg__reg_alpha': Real(0.0, 10.0),
             'reg__reg_lambda': Real(0.0, 10.0)
         },
-        "func_feature_importance": [functions_MLmodels.gboost_feature_importance]
+        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     }
 }
