@@ -45,7 +45,7 @@ preprocessor = ColumnTransformer(transformers=[
 # ------------------------------------------------------------------------------------------------------------------
 
 # Loop over and optimize models
-model_to_run = ['rf']
+model_to_run = ['lgbm']
 
 # Correlation plot of df features
 

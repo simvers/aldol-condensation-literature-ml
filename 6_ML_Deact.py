@@ -56,8 +56,6 @@ preprocessor = ColumnTransformer(transformers=[
 # Loop over and optimize models
 model_to_run = ['rf']
 
-# Correlation plot of df features
-
 for model, config in model_config.items():
     if model in model_to_run:
 
@@ -68,7 +66,7 @@ for model, config in model_config.items():
         ])
 
         # Setup hyperparameter optimization
-        opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=100, scoring='r2', random_state=8)
+        opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=25, scoring='r2', random_state=8)
 
         # Fit model with train_data
         opt.fit(X_train, y_train)
@@ -98,8 +96,8 @@ for model, config in model_config.items():
                 func(opt, feature_names, X_test, y_test)
 
         # Save optimized model
-        path = './data/tmp/'
-        # save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
+        path = './data/ML_models_n/'
+        save_output(model, path, (X_train, y_train), (X_test, y_test), opt)
 
 # ------------------------------------------------------------------------------------------------------------------
 
