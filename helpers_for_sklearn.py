@@ -2,6 +2,7 @@ from scipy.stats import gaussian_kde
 from scipy.spatial.distance import jensenshannon
 from sklearn.model_selection import KFold
 import numpy as np
+import time, datetime
 
 class ContinuousStratifiedKFold:
     """
@@ -59,3 +60,83 @@ class ContinuousStratifiedKFold:
     def get_n_splits(self, X=None, y=None, groups=None):
         """Return number of splitting iterations."""
         return self.n_splits
+
+# Convergence checkers to use with skopt optimizer object (not applicable to the grid search)
+# Convergence criteria
+class ConvergenceChecker:
+    '''
+    This will be passed as callback to the optimizer object.
+    If this returns True, then optimization will stop.
+    '''
+    def __init__(self, min_improvement = 0.02, patience=15):
+        """
+        Initialize the ConvergenceChecker.
+        Paramters:
+            min_improvement (float): cutoff criteria in term of delta_r2
+            patience (int): number of cycles to averagve over.
+        """
+        self.min_improvement = min_improvement
+        self.patience = patience
+        self.r2_scores = []
+    
+    def __call__(self, result):
+        current_r2 = -result.func_vals[-1] # For some reason this is a negative number (Figure out why.)
+        self.r2_scores.append(current_r2)
+
+        # Don't check the stopping criteria in the begining, at least a few (=patience in this case)
+        if len(self.r2_scores) < self.patience:
+            return False
+
+        recent_scores = self.r2_scores[-self.patience:] # This will check last few (=patience)
+        best_recent = max(recent_scores)
+        worst_recent = min(recent_scores)
+        improvement = best_recent - worst_recent
+
+        if improvement < self.min_improvement:
+            print(f"\nConverged! Improvement of {improvement:.4f} over last {self.patience} iterations is below threshold {self.min_improvement}")
+            return True
+
+        return False # Continue to optimize
+        
+class OptimizationTracker:
+    def __init__(self):
+        self.iteration_scores = []
+        self.iteration_params = []
+        self.start_time = time.time()
+        self.best_score = -np.inf
+
+    def __call__(self, res):
+        current_time = time.time()
+        elapsed = current_time - self.start_time
+
+        # Get current iteration info
+        iteration = len(res.func_vals)
+        current_score = -res.func_vals[-1] # Again the same thing here, this is a negative number
+        # current_params = res.x_iters[-1] # Get the latest paramers
+        self.iteration_scores.append(current_score)
+
+        param_dict = dict(zip(res.space.dimension_names, res.x_iters[-1]))
+        self.iteration_params.append(param_dict)
+
+        # Update best score
+        if current_score > self.best_score:
+            self.best_score = current_score
+            improvement = "\tNew Best!"
+        else:
+            improvement = ""
+
+        # Print progress
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iteration {iteration:3d} | "
+              f"R² = {current_score:.4f} | Best R² = {self.best_score:.4f} | "
+              f"Elapsed: {elapsed/60:.1f}min{improvement}")
+        
+        # Print best parameters every 25 iterations
+        if iteration % 25 == 0 and iteration > 0:
+            best_idx = np.argmax(self.iteration_scores)
+            print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Best parameters so far (iteration {best_idx + 1}):")
+            for param, value in self.iteration_params[best_idx].items():
+                if isinstance(value, float):
+                    print(f"\t{param}: {value:.4f}")
+                else:
+                    print(f"\t{param}: {value}")
+            print()
