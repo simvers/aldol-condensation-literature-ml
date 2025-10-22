@@ -1,10 +1,10 @@
 {
     "reg__colsample_bytree": 0.5,
-    "reg__learning_rate": 0.10874193346657589,
-    "reg__max_depth": 3,
-    "reg__n_estimators": 396,
-    "reg__num_leaves": 15,
+    "reg__learning_rate": 0.09056688209469661,
+    "reg__max_depth": 12,
+    "reg__n_estimators": 500,
+    "reg__num_leaves": 150,
     "reg__reg_alpha": 0.0,
-    "reg__reg_lambda": 6.610649966342766,
-    "reg__subsample": 0.5
+    "reg__reg_lambda": 0.0,
+    "reg__subsample": 1.0
 }

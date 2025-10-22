@@ -1,2 +1,17 @@
+# Custom files
 doi.txt
+
+# Jupyter notebooks
 *.ipynb
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/

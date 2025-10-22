@@ -1,0 +1,6 @@
+{
+    "total_iterations": 100,
+    "best_r2_score": 0.7792877181142877,
+    "final_r2_score": 0.7688293556828905,
+    "improvement_over_time": 0.22321311509384256
+}
