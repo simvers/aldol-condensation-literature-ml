@@ -5,8 +5,8 @@ from functions.functions_preprocessing import calculate_composition, calculate_m
 
 
 # Load data and extract columns
-# path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
-path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
+path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
+# path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
 data = pd.read_excel(path, na_values=['', ' '], keep_default_na=False)
 print(data.columns.to_list())
 

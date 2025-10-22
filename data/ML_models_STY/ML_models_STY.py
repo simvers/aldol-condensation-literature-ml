@@ -49,7 +49,7 @@ model_config = {
 
     "knn": {
         "model": KNeighborsRegressor(),
-        "search_spcace": {
+        "search_space": {
             'reg__n_neighbors': Integer(1, 30),
             'reg__weights': Categorical(['uniform', 'distance']),
             'reg__p': Integer(1, 2)  # 1 = Manhattan, 2 = Euclidean
