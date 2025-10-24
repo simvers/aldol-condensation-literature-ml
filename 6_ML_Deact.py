@@ -19,17 +19,19 @@ plt.rcParams["font.size"] = 8
 # ------------------------------------------------------------------------------------------------------------------
 
 # Import data
-df = pd.read_csv("data/data_deactivation.csv")
+df = pd.read_csv("data/data_engineered.csv")
+elements = pd.read_csv('data/elements.csv', header=None).squeeze('columns').to_list()
 
 # Check that STY and fitted STY_0 are similar
 # plt.scatter(df['STY_Acryl_mmolhg'], df['STY0'])
 # plt.show()
 
 # Drop columns
-df.drop(['Y_Acryl_Ac', 'Y_Acryl_Fa', 'doi', 'Link_to_excel', 'Cluster_title', 
+df.drop(elements + ['Y_Acryl_Ac', 'Y_Acryl_Fa', 'doi', 'Link_to_excel', 'Cluster_title', 
         #  'Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming', 
          'STY_Acryl_mmolhg',
          'Cluster_n'], axis=1, inplace=True)
+print(df.columns)
 
 X = df.drop(columns="n")
 y  = df["n"]
@@ -66,7 +68,7 @@ for model, config in model_config.items():
         ])
 
         # Setup hyperparameter optimization
-        opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=25, scoring='r2', random_state=8)
+        opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=20, scoring='r2', random_state=8)
 
         # Fit model with train_data
         opt.fit(X_train, y_train)
