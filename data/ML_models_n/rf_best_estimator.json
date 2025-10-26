@@ -1,0 +1,7 @@
+{
+    "reg__max_depth": 12,
+    "reg__max_features": 0.38602124182347686,
+    "reg__min_samples_leaf": 8,
+    "reg__min_samples_split": 17,
+    "reg__n_estimators": 890
+}

@@ -1,4 +1,4 @@
-,Cluster composition,Cluster title
-0,['Si' 'Al' 'Cs' 'P' 'Na'],Si-Al-Cs
-1,['Al' 'Cs' 'Ti' 'P' 'Ba'],Al-Cs-Ti
-2,['P' 'V' 'Ti' 'Si' 'W'],P-V-Ti
+,Cluster_composition,Cluster_title,Counts
+0,['Al' 'Si' 'Cs' 'Ba' 'P'],Al-Si-Cs,133
+1,['P' 'V' 'Ti' 'Si' 'W'],P-V-Ti,141
+2,['Si' 'Cs' 'P' 'B' 'W'],Si-Cs-P,92
