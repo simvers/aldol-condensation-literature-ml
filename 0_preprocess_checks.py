@@ -5,11 +5,10 @@ from functions.functions_preprocessing import calculate_composition, calculate_m
 
 
 # Load data and extract columns
-# path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
-path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
-
+path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
+# path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
 data = pd.read_excel(path, na_values=['', ' '], keep_default_na=False)
-print(data.columns)
+print(data.columns.to_list())
 
 # Different columns
 element_columns = ['Supp_1', 'Supp_2', 'Atom_1', 'Atom_2', 'Atom_3', 'Atom_4']
@@ -31,15 +30,11 @@ molar_composition = calculate_composition(data[element_columns + comp_columns])
 
 # Encode atom composition and save elements to csv
 elements = molar_composition.columns.to_series()
-elements.to_csv('data/elements.csv', index=False, header=False)
+# elements.to_csv('data/elements.csv', index=False, header=False)
 print('Elements in catalysts: ', elements.to_list())
 
 # Concat encoded atom composition and rest of data
-data_clean = pd.concat(
-    [molar_composition, 
-     data[get_columns]], 
-    axis=1
-)
+data_clean = pd.concat([molar_composition, data[get_columns]], axis=1)
 
 # Most popular elements
 major_elements = molar_composition.mean(axis=0).sort_values(ascending=False)
@@ -55,6 +50,5 @@ data_clean = calculate_molarflowrates(data_clean)
 
 # Save clean data
 # molar_composition.to_csv('data/molar_composition.csv', index=False)
-data_clean.to_csv('data/data_clean.csv', index=False)
-
+# data_clean.to_csv('data/data_clean.csv', index=False)
 print(data_clean.head(10))

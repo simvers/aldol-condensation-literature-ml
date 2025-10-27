@@ -29,11 +29,11 @@ molar_composition = calculate_composition(data[element_columns + comp_columns])
 # Encode atom composition and save elements to csv
 elements = molar_composition.columns.to_series()
 elements.to_csv('data/elements.csv', index=False, header=False)
-print('Elements in catalysts: ', elements.to_list())
+print('Elements in catalysts: \n', elements.to_list())
 
 # Most popular elements
 major_elements = molar_composition.mean(axis=0).sort_values(ascending=False)
-print('Major elements in catalysts: ', major_elements)
+print('Major elements in catalysts: \n', major_elements)
 
 # Concat encoded atom composition and rest of data
 data_comp = pd.concat([molar_composition, data[get_columns]], axis=1)

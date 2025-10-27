@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
 
 
 # Import processed data and elements
@@ -37,7 +35,7 @@ ax.set(xlabel='Number of clusters', ylabel='K-means score', xlim=(1, 9), xticks=
 fig.savefig(f'figures/clustering/clustering_score{"_binarized"*binarize}.png', dpi=300)
 
 # Optimal clustering
-n_cluster = 3 if binarize else 4
+n_cluster = 4 if binarize else 4
 opt_cluster = KMeans(n_clusters=n_cluster)
 clustering = opt_cluster.fit_predict(composition)
 
@@ -48,9 +46,6 @@ centroids = pd.DataFrame({'Cluster_composition': centroids,
                           'Cluster_title': ['-'.join(centroid[:3]) for centroid in centroids],
                           'Counts': np.unique(clustering, return_counts=True)[1]})
 print(centroids)
-# Cluster 1: [P, V, Ti, Si, W]
-# Cluster 2: [Si, Al, Cs, P, Na]
-# Cluster 3: [Al, Cs, Ti, P, Ba]
 
 # --------------------------------------
 
@@ -67,22 +62,3 @@ for i in range(n_cluster):
 data_clustered.to_csv('data/data_clustered.csv', index=False)
 centroids.to_csv('data/centroids.csv', index=True)
 print(data_clustered.head(10))
-
-# --------------------------------------
-
-# Not sure what PCA and TSNE can be used for
-
-exit()
-
-# PCA
-pca = PCA(n_components=2)
-pca_reduced_data = pca.fit_transform(composition)
-plt.scatter(pca_reduced_data[:, 0], pca_reduced_data[:, 1], c=clustering, cmap=plt.get_cmap('plasma', n_cluster), label=centroids)
-plt.show()
-
-# TSNE
-tsne = TSNE(n_components=2, init='pca')
-tsne_reduced_data = tsne.fit_transform(composition)
-plt.scatter(tsne_reduced_data[:, 0], tsne_reduced_data[:, 1], c=clustering, cmap=plt.get_cmap('plasma', n_cluster), label=centroids)
-plt.legend()
-plt.show()

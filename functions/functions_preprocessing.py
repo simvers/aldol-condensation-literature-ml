@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from mendeleev import element
 
@@ -226,9 +225,9 @@ def calculate_molarflowrates(conditions):
         assert (conditions['STY_Acryl_mmolhg'].isna() == conditions['STY_Acryl_mmolhg_manual'].isna()).all  # no_STY == 82
 
     # Print report of missing values
-    print('Number of missing values: ', missing_values)
-    print(' - Missing source: ', missing_source)
-    print(' - Missing ratio: ', missing_ratio)
+    print('Number of observations with missing values: ', missing_values)
+    # print(' - Missing source: ', missing_source)
+    # print(' - Missing ratio: ', missing_ratio)
     print(' - Missing LHSV: ', missing_lhsv)
 
     return conditions
