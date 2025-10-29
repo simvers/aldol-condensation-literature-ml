@@ -56,7 +56,6 @@ opt.fit(X_train, y_train)
 onehot_feature_names = opt.best_estimator_.named_steps['preprocessor'] \
     .named_transformers_['cat'] \
     .get_feature_names_out(categorical_cols)
-
 feature_names = numerical_cols.tolist() + onehot_feature_names.tolist()
 
 # Print test and train score

@@ -77,8 +77,17 @@ data_deactivation.loc[:, initial_columns + ['STY0', 'n']].to_csv('data/data_deac
 
 # Scatter plot of sty0 vs n
 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-sns.scatterplot(data_deactivation, x='STY0', y='n', hue='Cluster_title', ax=ax)
+sns.scatterplot(data_deactivation, x='STY0', y='n', hue='Cluster_title', ax=ax, palette='plasma')
 sns.move_legend(ax, loc='lower center', bbox_to_anchor=(0.5, 1.05), frameon=False, ncols = 4, title=None)
 ax.set(xscale='symlog', xlim=(0, None), ylim=(0, None), xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='n /')
 ax.set_yscale('symlog', linthresh=1e-2)
 fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-n_scatterplot.png', dpi=600)
+
+# Scatter plot of sty0 vs sty
+fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+sns.scatterplot(data_deactivation, x='STY0', y='STY_Acryl_mmolhg', hue='Cluster_title', ax=ax, palette='plasma')
+ax.plot([0, 50], [0, 50], '-k', linewidth=0.5)
+sns.move_legend(ax, loc='lower center', bbox_to_anchor=(0.5, 1.05), frameon=False, ncols = 4, title=None)
+ax.set(xlim=(0, 50), ylim=(0, 50), xlabel='STY$_{0, model}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='STY$_{0, reported}$ / mmol h$^{-1}$ g$^{-1}$')
+fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-sty_scatterplot.png', dpi=600)
+

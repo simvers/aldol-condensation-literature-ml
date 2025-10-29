@@ -1,7 +1,9 @@
 {
-    "reg__max_depth": 12,
-    "reg__max_features": 0.38602124182347686,
-    "reg__min_samples_leaf": 8,
-    "reg__min_samples_split": 17,
-    "reg__n_estimators": 890
+    "reg__max_depth": 10,
+    "reg__max_features": 0.3,
+    "reg__max_samples": 0.8,
+    "reg__min_impurity_decrease": 0.0,
+    "reg__min_samples_leaf": 1,
+    "reg__min_samples_split": 2,
+    "reg__n_estimators": 500
 }

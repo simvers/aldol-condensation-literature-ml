@@ -2,13 +2,16 @@ import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor
 from skopt import BayesSearchCV
-from data.ML_models_n.ML_models_n import model_config
+from data.ML_models_n.ML_models_n import model_config_grid, model_config_bayes
 from functions.functions_MLmodels import save_output, load_model_from_tmp
+from helpers_for_sklearn import ContinuousStratifiedKFold
+from visualization_helpers import get_learning_curve, plot_learning_curve, plot_cv_distribution
 
 
 # Configuration
@@ -22,17 +25,16 @@ plt.rcParams["font.size"] = 8
 df = pd.read_csv("data/data_engineered.csv")
 elements = pd.read_csv('data/elements.csv', header=None).squeeze('columns').to_list()
 
-# Check that STY and fitted STY_0 are similar
-# plt.scatter(df['STY_Acryl_mmolhg'], df['STY0'])
-# plt.show()
-
 # Drop columns
 df.drop(elements + ['Y_Acryl_Ac', 'Y_Acryl_Fa', 'doi', 'Link_to_excel', 'Cluster_title', 
-        #  'Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming', 
-         'STY_Acryl_mmolhg',
+         'Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming', 
+         'STY_Acryl_mmolhg', 'Pressure_bar',
          'Cluster_n'], axis=1, inplace=True)
 print(df.columns)
 
+df.drop(df.loc[df['n'] > 0.5, :].index, axis=0, inplace=True)
+
+# Features and target
 X = df.drop(columns="n")
 y  = df["n"]
 
@@ -56,9 +58,9 @@ preprocessor = ColumnTransformer(transformers=[
 # ------------------------------------------------------------------------------------------------------------------
 
 # Loop over and optimize models
-model_to_run = ['rf']
+model_to_run = ['xgboost']  # xgboost
 
-for model, config in model_config.items():
+for model, config in model_config_grid.items():
     if model in model_to_run:
 
         # ML pipeline
@@ -67,30 +69,52 @@ for model, config in model_config.items():
             ('reg', config.get('model'))
         ])
 
+        # pipe = Pipeline(steps=[
+        #     ('preprocessor', preprocessor),
+        #     ('reg', RandomForestRegressor(max_depth= 12,max_features=0.38602124182347686,min_samples_leaf=8,min_samples_split=17, n_estimators=890))])
+
         # Setup hyperparameter optimization
-        opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=20, scoring='r2', random_state=8)
+        # opt = BayesSearchCV(pipe, config.get('search_space'), cv=10, n_iter=20, scoring='r2', random_state=8)
+        cv = ContinuousStratifiedKFold(n_splits=10, n_iter=50, random_state=8)
+        opt = GridSearchCV(estimator=pipe, param_grid=config.get('search_space'), cv=cv, scoring='r2', n_jobs=-1, verbose=2, return_train_score=True)
 
         # Fit model with train_data
+        # opt = pipe
         opt.fit(X_train, y_train)
 
+        # Extract best model
+        best_model = opt.best_estimator_
+
         # Retrieve feature names from one hot encoding
-        onehot_feature_names = opt.best_estimator_.named_steps['preprocessor'] \
+        onehot_feature_names = best_model.named_steps['preprocessor'] \
             .named_transformers_['cat'] \
             .get_feature_names_out(categorical_cols)
         feature_names = numerical_cols.tolist() + onehot_feature_names.tolist()
 
         # Train and test score
-        train_score = opt.score(X_train, y_train)
-        test_score = opt.score(X_test, y_test)
+        train_score = best_model.score(X_train, y_train)
+        test_score = best_model.score(X_test, y_test)
         print(f"{model} train score:{train_score : .2f}")
         print(f"{model} test score:{test_score : .2f}")
 
         # Plot correlation between experimental and predicted values
         fig, ax = plt.subplots()
-        sns.regplot(x=y_test, y=opt.predict(X_test), ax = ax)
+        sns.regplot(x=y_test, y=best_model.predict(X_test), ax = ax)
         ax.text(0.2, 0.8, f"test score: {test_score : .2f}", transform=ax.transAxes)
-        ax.set(xlabel="Experimental STY", ylabel="Predicted STY", title=f"{model} model")
-        plt.show()
+        ax.set(xlabel="Experimental n", ylabel="Predicted n", title=f"{model} model")
+        plt.savefig(f"figures/ML_models_n/{model}_gridsearch_predictions.png", dpi=600, bbox_inches='tight')
+        
+        # Training visualization
+        train_sizes, train_scores, val_scores = get_learning_curve(best_model, X_train, y_train, cv=cv, scoring="r2")
+        fig = plt.figure(figsize=(12/2.54, 6/2.54))
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        # Plot average learning curve
+        plot_learning_curve(train_sizes, train_scores, val_scores, title=f"rf_numeric_mols", ax=ax1)
+        # Plot fold-level distribution
+        plot_cv_distribution(train_sizes, val_scores, title=f"rf_numeric_mols", ax=ax2)
+        plt.tight_layout()
+        plt.savefig(f"figures/ML_models_n/{model}_gridsearch_learning_curve.png", dpi=600, bbox_inches='tight')
 
         # Feature importance
         if config.get('func_feature_importance'):
