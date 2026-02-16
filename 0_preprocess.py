@@ -1,12 +1,11 @@
 from pathlib import Path
-import numpy as np
 import pandas as pd
-from functions.functions_preprocessing import calculate_composition, calculate_molarflowrates
+from functions.functions_preprocessing import calculate_composition, calculate_molarflowrates, impute_ssa
 
 
 # Load data and extract columns
-path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
-# path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Catalysts.xlsx")
+path = Path("/mnt/c/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Data/Catalysts.xlsx")
+# path = Path("C:/Users/u0156112/OneDrive - KU Leuven/Shared_AC2GEN/Review/Data/Catalysts.xlsx")
 data = pd.read_excel(path, na_values=['', ' '], keep_default_na=False)
 print(data.columns.to_list())
 
@@ -18,7 +17,7 @@ comp_columns = ['Supp_Mass', 'Supp_Mol_1', 'Supp_Mass_Oxide_1', 'Supp_Mol_2', 'S
 get_columns = ['Ac_source', 'Fa_source', 'Stabilizer', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 
                'O_content', 'LHSV_mlhg', 'Temperature_K', 'Pressure_bar',
                'Y_Acryl_Ac', 'Y_Acryl_Fa',
-               'doi', 'Link_to_excel']
+               'doi', 'Link_to_excel', 'Year', 'SSA_m2g', 'SSA_Supp_m2g']
 data = data[element_columns + comp_columns + get_columns]
 
 # ------------------------------------------------------------------------------------------------
@@ -28,7 +27,7 @@ molar_composition = calculate_composition(data[element_columns + comp_columns])
 
 # Encode atom composition and save elements to csv
 elements = molar_composition.columns.to_series()
-elements.to_csv('data/elements.csv', index=False, header=False)
+elements.to_csv('data/catalysts/elements.csv', index=False, header=False)
 print('Elements in catalysts: \n', elements.to_list())
 
 # Most popular elements
@@ -46,7 +45,13 @@ print(data_processed.columns)
 
 # ------------------------------------------------------------------------------------------------
 
+# Impute SSA
+data_processed.loc[:, 'SSA_m2g'] = impute_ssa(data_processed.copy(), elements)
+data_processed.drop(['SSA_Supp_m2g'], axis=1, inplace=True)
+
+# ------------------------------------------------------------------------------------------------
+
 # Save clean data
 # molar_composition.to_csv('data/molar_composition.csv', index=False)
-data_processed.to_csv('data/data_processed.csv', index=False)
+data_processed.to_csv('data/catalysts/data_processed.csv', index=False)
 # print(data_processed.head(10))

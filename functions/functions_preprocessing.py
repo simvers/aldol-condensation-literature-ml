@@ -1,5 +1,6 @@
 import pandas as pd
 from mendeleev import element
+from sklearn.impute import KNNImputer
 
 
 def calculate_composition(compositions):
@@ -183,7 +184,7 @@ def calculate_molarflowrates(conditions):
             # Calculate the molar flowrate in mmol/min/g
             ac_mmolming = condition['LHSV_mlhg']/vol_molac/60*1000
             fa_mmolming = ac_mmolming/condition['Ratio_Ac_Fa']
-            meoh_mmolming = fa_mmolming*condition['Ratio_Stab_Fa'] if condition['Stabilizer'] == 'MeOH' else 0
+            meoh_mmolming = fa_mmolming*condition['Ratio_Stab_Fa'] if (condition['Stabilizer'] == 'MeOH') | (condition['Stabilizer'] == 'EtOH') else 0
             water_mmolming = fa_mmolming*condition['Ratio_Stab_Fa'] if condition['Stabilizer'] == 'Water' else 0
 
             # If formalin is used, consider the methanol (13wt.%) and water (100-37-13wt.%) present in it
@@ -195,7 +196,7 @@ def calculate_molarflowrates(conditions):
 
 
     # Overwrite stabilizer when formalin is used as Fa source
-    conditions.loc[conditions['Fa_source'] == 'FORM', 'Stabilizer'] = 'MeOH + H$_2$O'
+    conditions.loc[conditions['Fa_source'] == 'FORM', 'Stabilizer'] = 'MeOH \n+ H$_2$O'
     # conditions = conditions.fillna({'Stabilizer': 'None', "Ratio_Stab_Fa" : 0})
 
     # Calculate STY
@@ -231,6 +232,28 @@ def calculate_molarflowrates(conditions):
     print(' - Missing LHSV: ', missing_lhsv)
 
     return conditions
+
+
+def impute_ssa(composition, elements):
+
+    # Compute ratio, and identify missing values
+    composition.loc[:, 'SSA_ratio'] = composition.loc[:, 'SSA_m2g'] / composition.loc[:, 'SSA_Supp_m2g']
+    missing_index = composition['SSA_m2g'].isna()
+
+    # Fit imputer
+    imputer = KNNImputer(n_neighbors=20, weights='distance')
+    result = pd.DataFrame(imputer.fit_transform(composition[elements.to_list() + ['SSA_ratio', 'SSA_Supp_m2g']]),
+                          columns=imputer.get_feature_names_out(), index=composition.index)
+
+    # Impute values
+    assert composition.loc[missing_index, 'SSA_m2g'].isna().all()
+    composition.loc[missing_index, 'SSA_ratio'] = result.loc[missing_index, 'SSA_ratio'] 
+    composition.loc[missing_index, 'SSA_m2g'] = composition.loc[missing_index, 'SSA_ratio'] * composition.loc[missing_index, 'SSA_Supp_m2g']
+    
+    # Check if needed
+    # print(composition.loc[missing_index, ['SSA_m2g', 'SSA_Supp_m2g', 'SSA_ratio']].to_string())
+
+    return composition['SSA_m2g']
 
 
 if __name__ == "__main__":
