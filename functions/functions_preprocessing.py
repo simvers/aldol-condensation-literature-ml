@@ -192,7 +192,11 @@ def calculate_molarflowrates(conditions):
                 meoh_mmolming += fa_mmolming*fa['MW']/fa['Purity']*0.13/stab_properties.loc[stab_properties['Compound'] == 'MeOH', 'MW'].iloc[0]
                 water_mmolming += fa_mmolming*fa['MW']/fa['Purity']*(1-0.37-0.13)/stab_properties.loc[stab_properties['Compound'] == 'Water', 'MW'].iloc[0]
             
+            # Save molar flowrates
             conditions.loc[i, ['Ac_mmolming', 'Fa_mmolming', 'MeOH_mmolming', 'Water_mmolming']] = ac_mmolming, fa_mmolming, meoh_mmolming, water_mmolming
+
+            # Fix Stab_Fa ratio
+            conditions.loc[i, 'Ratio_Stab_Fa'] = (meoh_mmolming + water_mmolming) / fa_mmolming
 
 
     # Overwrite stabilizer when formalin is used as Fa source

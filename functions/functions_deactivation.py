@@ -181,28 +181,28 @@ def deactivation_modelling(data_df, models, target='STY_Acryl_mmolhg_t'):
         sns.kdeplot(ax=ax, data=data_df[f'{name}_nrmse'], color=colors[i], alpha=alpha[i], label=name, cut=0)
     ax.legend(frameon=False)
     ax.set(xlabel='NRMSE', xlim=(0, None))
-    fig.savefig('figures/deactivation_modelling/NRMSE_kdeplot.png', dpi=600)
+    fig.savefig('figures/deactivation_modelling/NRMSE_kdeplot.svg', dpi=300, format='svg')
 
     # NRMSE violinplot 
-    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
-    sns.violinplot(ax=ax, data=[data_df[f'{name}_nrmse'] for name in models.keys()], palette=colors, cut=0)
-    for i, patch in enumerate(ax.collections):
-        patch.set_alpha(alpha[i])
-    ax.set(xlabel='Deactivation models', ylabel='NRMSE', xticklabels=models.keys())
-    fig.savefig('figures/deactivation_modelling/NRMSE_violinplot.png', dpi=600)
+    # fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    # sns.violinplot(ax=ax, data=[data_df[f'{name}_nrmse'] for name in models.keys()], palette=colors, cut=0)
+    # for i, patch in enumerate(ax.collections):
+    #     patch.set_alpha(alpha[i])
+    # ax.set(xlabel='Deactivation models', ylabel='NRMSE', xticklabels=models.keys())
+    # fig.savefig('figures/deactivation_modelling/NRMSE_violinplot.svg', dpi=300, format='svg')
 
     # KDE plot of param values
-    fig, ax = plt.subplots(1, 3, figsize=(12, 8))
-    for i, name in enumerate(models.keys()):
-        for j in range(models.get(name).get('param').shape[1]):
-            if j == 1:
-                print(name, ' n > 1', sum(models.get(name).get('param')[:, j] > 1))
-            sns.kdeplot(ax=ax[j], x=models.get(name).get('param')[:, j], color=colors[i], alpha=alpha[i], label=name, cut=0)
-    ax[0].legend(frameon=False)
-    ax[0].set(xlabel='STY$_{\mathdefault{0}}$')
-    ax[1].set(xlabel='n')
-    ax[2].set(xlabel='STY$\mathdefault{_{inf}}$')
-    fig.savefig('figures/deactivation_modelling/Param_kdeplot.png', dpi=600)
+    # fig, ax = plt.subplots(1, 3, figsize=(12, 8))
+    # for i, name in enumerate(models.keys()):
+    #     for j in range(models.get(name).get('param').shape[1]):
+    #         if j == 1:
+    #             print(name, ' n > 1', sum(models.get(name).get('param')[:, j] > 1))
+    #         sns.kdeplot(ax=ax[j], x=models.get(name).get('param')[:, j], color=colors[i], alpha=alpha[i], label=name, cut=0)
+    # ax[0].legend(frameon=False)
+    # ax[0].set(xlabel='STY$_{\mathdefault{0}}$')
+    # ax[1].set(xlabel='n')
+    # ax[2].set(xlabel='STY$\mathdefault{_{inf}}$')
+    # fig.savefig('figures/deactivation_modelling/Param_kdeplot.svg', dpi=300, format='svg')
 
     # Error plot of param values
     fig, ax = plt.subplots(1, 3, figsize=(12, 4))
@@ -213,7 +213,7 @@ def deactivation_modelling(data_df, models, target='STY_Acryl_mmolhg_t'):
     ax[0].set(xlabel='STY_0', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
     ax[1].set(xlabel='n', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
     ax[2].set(xlabel='STY_inf', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
-    fig.savefig('figures/deactivation_modelling/Error_scatterplot.png', dpi=600)
+    fig.savefig('figures/deactivation_modelling/Error_scatterplot.svg', dpi=300, format='svg')
 
     # Correlation plot 
     fig, ax = plt.subplots(1, 3, figsize=(12, 8))
@@ -227,18 +227,18 @@ def deactivation_modelling(data_df, models, target='STY_Acryl_mmolhg_t'):
     ax[0].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - n')
     ax[1].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - STY$\mathdefault{_{inf}}$')
     ax[2].set(xlabel='Correlation n - STY$\mathdefault{_{inf}}$')
-    fig.savefig('figures/deactivation_modelling/Corr_kdeplot.png', dpi=600)
+    fig.savefig('figures/deactivation_modelling/Corr_kdeplot.svg', dpi=300, format='svg')
 
     # Correlation violinplot 
-    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
-    coo = [(0, 1), (0, 2), (1, 2)]
-    j = 0
-    row, col = coo[j]
-    sns.violinplot(ax=ax, data=[models.get(name).get('pcorr')[:, row, col] for name in models.keys()], palette=colors, cut=0)
-    for i, patch in enumerate(ax.collections):
-        patch.set_alpha(alpha[i])
-    ax.set(ylabel='Correlation STY$\mathdefault{_{0}}$ - n', xticklabels=models.keys())
-    fig.savefig('figures/deactivation_modelling/Corr_violinplot.png', dpi=600)
+    # fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    # coo = [(0, 1), (0, 2), (1, 2)]
+    # j = 0
+    # row, col = coo[j]
+    # sns.violinplot(ax=ax, data=[models.get(name).get('pcorr')[:, row, col] for name in models.keys()], palette=colors, cut=0)
+    # for i, patch in enumerate(ax.collections):
+    #     patch.set_alpha(alpha[i])
+    # ax.set(ylabel='Correlation STY$\mathdefault{_{0}}$ - n', xticklabels=models.keys())
+    # fig.savefig('figures/deactivation_modelling/Corr_violinplot.svg', dpi=300, format='svg')
 
     # ------------------------------------------------------------------------------------------------
 

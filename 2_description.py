@@ -31,20 +31,11 @@ grouped_data = data_clustered[['doi', 'Year', 'Cluster_title']].groupby(['doi', 
 print(grouped_data)
 print(data_clustered[['doi', 'Year', 'Cluster_title']].groupby(['doi', 'Cluster_title', 'Year'], as_index=False)['doi'].count().to_string())
 fig, ax = plt.subplots(1, 1, figsize=(5, 3))
-sns.histplot(grouped_data, x='Year', hue='Cluster_title', palette=mycolor, ax=ax, discrete=True, multiple='stack', shrink=0.8, edgecolor=None)  # multiple 'dodge'
+sns.histplot(grouped_data, x='Year', hue='Cluster_title', palette=mycolor, ax=ax, discrete=True, multiple='stack', shrink=0.8, edgecolor=None, alpha=1)  # multiple 'dodge'
 sns.move_legend(ax, loc='upper left', frameon=False, title='Catalyst clusters', handlelength=1.5)
 ax.set(ylabel='Publication count', xlim=(1965, 2026))
 fig.tight_layout()
 fig.savefig('figures/description/cluster_history.svg', dpi=300, format='svg')
-
-# -----------------------------
-
-# Fix stab ratio
-# data_clustered['Ratio_Stab_Fa_old'] = data_clustered['Ratio_Stab_Fa']
-data_clustered['Ratio_Stab_Fa'] = (data_clustered['MeOH_mmolming'] + data_clustered['Water_mmolming'])/data_clustered['Fa_mmolming']
-# data_clustered.plot.scatter(x='Ratio_Stab_Fa_old', y='Ratio_Stab_Fa', )
-# print(data_clustered[data_clustered['Ratio_Stab_Fa'] < data_clustered['Ratio_Stab_Fa_old']*0.9999])
-# plt.show()
 
 # -----------------------------
 

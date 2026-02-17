@@ -18,7 +18,7 @@ if binarize:
     composition[:] = np.where(composition < 1e-10, 0, 1)
 
 # Control randomness
-np.random.seed(4321)
+np.random.seed(54321)
 
 # Cluster data
 fig, ax = plt.subplots(1, 1, figsize=(3.5, 3.5))

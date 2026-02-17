@@ -27,10 +27,10 @@ model_config_grid = {
     "rf": {
         "model": RandomForestRegressor(random_state=8, n_jobs=-1, verbose=0),
         "search_space": {
-            "reg__n_estimators": [100, 500],
-            "reg__max_depth": [10, 20],
+            "reg__n_estimators": [500, 1000],
+            "reg__max_depth": [3, 6],
             "reg__min_samples_split": [2, 20],
-            "reg__min_samples_leaf": [1, 10],
+            "reg__min_samples_leaf": [1, 5, 10],
             "reg__max_features": [0.3, 1.0],
             "reg__min_impurity_decrease": [0.0, 0.005],
             "reg__max_samples": [0.8, 1.0]
@@ -43,42 +43,42 @@ model_config_grid = {
             # "reg__max_samples": [0.8, 0.9, 1.0]
         },
         "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
-    # },
+    },
 
-    # "svr": {
-    #     "model": SVR(),
-    #     "search_space": {
-    #         'reg__C': Real(0.01, 100, prior='log-uniform'),
-    #         'reg__epsilon': Real(0.001, 1.0, prior='log-uniform'),
-    #         'reg__kernel': Categorical(['rbf', 'poly', 'sigmoid']),
-    #         'reg__gamma': Categorical(['scale', 'auto'])
-    #     },
-    #     "func_feature_importance": None
-    # },
+    "svr": {
+        "model": SVR(),
+        "search_space": {
+            'reg__C': [0.01, 1, 100],
+            'reg__epsilon': [0.001, 0.1, 1],
+            'reg__kernel': ['rbf', 'poly', 'sigmoid'],
+            'reg__gamma': ['scale', 'auto']
+        },
+        "func_feature_importance": None
+    },
 
-    # "knn": {
-    #     "model": KNeighborsRegressor(),
-    #     "search_spcace": {
-    #         'reg__n_neighbors': Integer(1, 30),
-    #         'reg__weights': Categorical(['uniform', 'distance']),
-    #         'reg__p': Integer(1, 2)  # 1 = Manhattan, 2 = Euclidean
-    #     },
-    #     "func_feature_importance": None
-    # },
+    "knn": {
+        "model": KNeighborsRegressor(),
+        "search_space": {
+            'reg__n_neighbors': [1, 10, 20, 30],
+            'reg__weights': ['uniform', 'distance'],
+            'reg__p': [1, 2]  # 1 = Manhattan, 2 = Euclidean
+        },
+        "func_feature_importance": None
+    },
 
-    # "lgbm": {
-    #     "model": LGBMRegressor,
-    #     "search_space": {
-    #         'reg__num_leaves': Integer(15, 150),
-    #         'reg__max_depth': Integer(3, 12),
-    #         'reg__learning_rate': Real(0.001, 0.5, prior='log-uniform'),
-    #         'reg__n_estimators': Integer(50, 500),
-    #         'reg__subsample': Real(0.5, 1.0),
-    #         'reg__colsample_bytree': Real(0.5, 1.0),
-    #         'reg__reg_alpha': Real(0.0, 10.0),
-    #         'reg__reg_lambda': Real(0.0, 10.0)
-    #     },
-    #     "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
+    "lgbm": {
+        "model": LGBMRegressor(),
+        "search_space": {
+            'reg__num_leaves': [1, 5],
+            'reg__max_depth': [3, 6],
+            'reg__learning_rate': [0.001, 0.1, 0.5],
+            'reg__n_estimators': [500, 1000],
+            # 'reg__subsample': [0.1, 1],
+            # 'reg__colsample_bytree': [0.5, 1],
+            'reg__reg_alpha': [1, 10],
+            'reg__reg_lambda': [1, 10]
+        },
+        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     }
 }
 

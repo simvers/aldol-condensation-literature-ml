@@ -1,5 +1,5 @@
 {
-    "reg__colsample_bylevel": 1.0,
+    "reg__colsample_bylevel": 0.5,
     "reg__colsample_bynode": 1.0,
     "reg__colsample_bytree": 0.5,
     "reg__gamma": 0.0,
