@@ -1,9 +1,0 @@
-{
-    "model__max_depth": 6,
-    "model__max_features": 1,
-    "model__max_samples": 0.8,
-    "model__min_impurity_decrease": 0,
-    "model__min_samples_leaf": 2,
-    "model__min_samples_split": 4,
-    "model__n_estimators": 750
-}

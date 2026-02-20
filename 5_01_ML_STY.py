@@ -11,8 +11,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.inspection import permutation_importance
 import shap
 from data.ML_models_STY.ML_models_STY import model_config
-from functions.functions_MLmodels import save_output, load_model_from_tmp, get_learning_curve, plot_learning_curve, plot_cv_distribution, plot_feature_output, plot_partial_dependence
-from helpers_for_sklearn import ContinuousStratifiedKFold
+from functions.functions_MLmodels import save_output, load_model_from_tmp, get_learning_curve, plot_learning_curve, plot_cv_distribution, plot_feature_output, plot_partial_dependence, ContinuousStratifiedKFold
 
 
 # Configuration
@@ -82,7 +81,7 @@ preprocessor = ColumnTransformer(transformers=[
 # ------------------------------------------------------------------------------------------------------------------
 
 # Loop over and optimize models
-model_to_train = ['knn']  #  best_xgboost, xgboost, rf
+model_to_train = ['xgboost']  #  best_xgboost, xgboost, rf, knn
 
 # Train models
 # for model, config in model_config.items():
@@ -150,9 +149,13 @@ for model in model_to_train:
 
     # Plot correlation between experimental and predicted values
     # sns.regplot(x=np.expm1(y_test), y=np.expm1(best_pipe.predict(X_test)), ax=ax[1])
-    sns.regplot(x=y_test, y=best_model.predict(x_test), ax=ax[1])
+    # sns.regplot(x=y_test, y=best_model.predict(x_test), ax=ax[1])
+    sns.scatterplot(x=y_test, y=best_model.predict(x_test), ax=ax[1])
+    max_ = 4  # max(ax[1].get_xlim()[-1], ax[1].get_ylim()[-1])
+    sns.lineplot(x=[0, max_], y=[0, max_], ax=ax[1])
     ax[1].text(0.2, 0.8, f"test score: {test_score : .2f}", transform = ax[1].transAxes)
-    ax[1].set(xlabel="ln(Experimental STY / mmol h$^{-1}$ g$^{-1}$)", ylabel="ln(Predicted STY / mmol h$^{-1}$ g$^{-1}$)")
+    ax[1].set(xlabel="ln( 1 + Experimental STY / mmol h$^{-1}$ g$^{-1}$ )", ylabel="ln( 1 + Predicted STY / mmol h$^{-1}$ g$^{-1}$ )",
+              xlim=[0, max_], ylim=[0, max_], )
 
     fig.tight_layout()
     fig.savefig(f"figures/ML_STY/{model}/{model}_grid_feateng_predictions.png", dpi=600, bbox_inches='tight')
@@ -229,37 +232,3 @@ for model in model_to_train:
     ax.set(xlabel='SHAP value')
     fig.savefig(f"figures/ML_STY/{model}/{model}_grid_feateng_beeswarm.png", dpi=600, bbox_inches='tight')
         
-
-# ------------------------------------------------------------------------------------------------------------------
-
-# exit()
-# # Comparison of models' fitting
-# models_to_compare = ["svr", "xgboost", "lightGBM", "knn", "rf"]
-
-# # Plot
-# fig = plt.figure(figsize=(18/2.54, 18/2.54))
-# for n, model in enumerate(models_to_compare):
-
-#     # Load saved model
-#     opt, (x_train,y_train), (x_test,y_test) = load_model_from_tmp("data/tmp/", model)
-
-#     # Add subplot
-#     ax = fig.add_subplot(3, 2, n+1)
-#     sns.regplot(x=y_test, y=opt.predict(x_test), ax=ax)
-#     score = opt.score(x_test, y_test)
-#     ax.set(title = f"model : {model}, test_score : {score : .2f}",
-#            xlabel = r"STY_Experimental",
-#            ylabel = r"STY_predicted",
-#            )
-
-# plt.tight_layout()
-# # plt.savefig("figures/5_11_model_comparison.png", dpi = 600, bbox_inches='tight')
-# plt.show()
-
-# Load models config from json file
-# Map json directory to ML model
-# with open('data/ML_models_STY/ML_models_STY.json') as f:
-#     model_config = json.load(f)
-# model_mapping = {
-#     "xgboost": XGBRegressor,
-# }
