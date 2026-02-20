@@ -1,12 +1,21 @@
 import json
 import os
 import joblib
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from xgboost import plot_importance
+from sklearn.model_selection import learning_curve
 from sklearn.inspection import permutation_importance
+from xgboost import plot_importance
+from sklearn.inspection import partial_dependence
+# from scipy.signal import savgol_filter
+import shap
 
+
+# ------------------------------------------------------------------------------------------------------------------
+
+# Save-load models
 
 def save_output(model, path, train, test, opt, tracker=None):
     if not os.path.isdir(path):
@@ -67,6 +76,72 @@ def load_model_from_tmp(path, model, include_tracker=False):
 
     return best_estimator, train, test
 
+# ------------------------------------------------------------------------------------------------------------------
+
+# Learning curve
+
+def get_learning_curve(estimator, X, y, cv=5, scoring="r2", train_sizes=np.linspace(0.1, 1.0, 10)):
+    """
+    Compute training and validation scores for learning curve.
+    """
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator=estimator,
+        X=X,
+        y=y,
+        cv=cv,
+        scoring=scoring,
+        train_sizes=train_sizes,
+        n_jobs=-1,
+        return_times=False
+    )
+
+    return train_sizes, train_scores, val_scores
+
+
+def plot_learning_curve(train_sizes, train_scores, val_scores,
+                        title="Learning Curve", ylabel="R² Score", ax=None):
+    """
+    Plot mean learning curve with error bands.
+    """
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    val_scores_mean = np.mean(val_scores, axis=1)
+    val_scores_std = np.std(val_scores, axis=1)
+
+    ax.set_ylim(0,1)
+    ax.set_title(title)
+    ax.set_xlabel("Training examples")
+    ax.set_ylabel(ylabel)
+
+    # Training score curve
+    ax.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
+    ax.fill_between(train_sizes, train_scores_mean - train_scores_std,
+                     train_scores_mean + train_scores_std, alpha=0.2, color="r")
+
+    # Cross-validation score curve
+    ax.plot(train_sizes, val_scores_mean, 'o-', color="g", label="Cross-validation score")
+    ax.fill_between(train_sizes, val_scores_mean - val_scores_std,
+                     val_scores_mean + val_scores_std, alpha=0.2, color="g")
+
+    ax.legend(loc="best")
+    ax.grid(True)
+
+
+def plot_cv_distribution(train_sizes, val_scores, title="Cross-Validation Distribution", ylabel="R² per Fold", ax = None):
+    """
+    Plot boxplots of cross-validation scores for each training size.
+    """
+    sns.boxplot(data=[val_scores[i] for i in range(len(train_sizes))], ax=ax)
+    ax.set_xticks(ticks=range(len(train_sizes)), labels=train_sizes.astype(int), rotation=45)
+    ax.set_title(title)
+    ax.set_xlabel("Training examples")
+    ax.set_ylabel(ylabel)
+    ax.grid(True, axis="y", linestyle="--", alpha=0.7)
+    ax.set_ylim(0,1)
+
+# ------------------------------------------------------------------------------------------------------------------
+
+# Feature importance
 
 def plot_feature_importance(opt, feature_names):
 
@@ -97,3 +172,76 @@ def permutation_feature_importance(opt, feature_names, X_test, y_test):
     ax.set_title("Permutation Feature Importance (Test Set)")
     plt.tight_layout()
     plt.show()
+
+# ------------------------------------------------------------------------------------------------------------------
+
+# Shapley analysis
+
+def plot_partial_dependence(model, x: pd.DataFrame, individual_plot=False):
+        
+    # Compute expected values
+    # expected_output_val = explainer.expected_value
+    expected_output_val = model.predict(x).mean()
+    expected_feature_val = x.mean()
+
+    # Figure
+    fig, ax = plt.subplots(5, 2, figsize=(10, 25))
+    # fig, ax = plt.subplots(3, 4, figsize=(16, 12))
+    ax = ax.ravel()
+
+    # Partial dependence plot
+    for i, feature in enumerate(x.columns):
+        
+        # Plot feature partial dependence
+        results = partial_dependence(model, x, features=[i], kind='average')
+        ax[i].scatter(results['grid_values'][0], results['average'][0], color='k')
+        # Shap plot not working with custom ax
+        # Ice for correlation with another feature
+        # shap.plots.partial_dependence(feature, model.predict, x_test_shap, ax=ax[i],model_expected_value=True, feature_expected_value=True, show=False, ice=False,)
+
+        # Trend line
+        ax[i].plot(results['grid_values'][0], results['average'][0], color='DarkRed')
+        # window = int(np.ceil(len(results['grid_values'][0])/15)*2+1)
+        # ax[i].plot(results['grid_values'][0], savgol_filter(results['average'][0], window_length=window, polyorder=1), color='DarkRed')
+        # sns.regplot(x=results['grid_values'][0], y=results['average'][0], order=0.5, color='DarkRed', ax=ax[i])
+
+        # Labels
+        ax[i].set(xlabel=feature, ylabel=f'E[f(x) | {feature}]', ylim=(0.7, 2.3))
+
+        # Plot hist
+        ax_hist = ax[i].inset_axes([0, 0, 1, 0.2], zorder=0)  # [x, y, width, height]
+        ax_hist.hist(x.loc[:, feature], color='grey', bins=20)
+        ax_hist.set(ylim=(0, 70))
+        ax_hist.axis('off')
+
+        # Display expected values
+        ax[i].axhline(y=expected_output_val, linestyle='--', color='grey')
+        ax[i].axvline(x=expected_feature_val[feature], linestyle='--', color='grey')
+        y_min, y_max = ax[i].get_ylim()
+        ax[i].text(x=expected_feature_val[feature], y=y_max+(y_max-y_min)*0.02, s=f'E[{feature}]', horizontalalignment='center')
+        x_min, x_max = ax[i].get_xlim()
+        ax[i].text(x=x_max+(x_max-x_min)*0.02, y=expected_output_val, s=f'E[f(x)]', verticalalignment='center', rotation = 270)
+    
+        # Partial dependence plot
+        if individual_plot:
+            # Plot feature partial dependence
+            fig_i, ax_i = shap.plots.partial_dependence(feature, model.predict, x, model_expected_value=True, feature_expected_value=True, show=False, ice=False,)
+            ax_i.scatter(results['grid_values'][0], results['average'][0], color='k')
+            fig_i.savefig(f"figures/ML_STY/model_grid_feateng_{feature}.png", dpi=600, bbox_inches='tight')
+
+    return fig, ax
+    
+
+def plot_feature_output(x: pd.DataFrame, y):
+
+    fig, ax = plt.subplots(5, 2, figsize=(8, 20))
+    # fig, ax = plt.subplots(3, 4, figsize=(16, 12))
+    ax = ax.ravel()
+    # Partial dependence plot
+    for i, feature in enumerate(x.columns):
+        
+        # Plot feature partial dependence
+        ax[i].scatter(x.loc[:, feature], y, color='k')
+        ax[i].set(xlabel=feature, ylabel=f'log1p(STY)', ylim=(0, 4))
+    
+    return fig, ax

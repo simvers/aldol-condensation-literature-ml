@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
 from functions.utils import filter_type, process_doi
-from functions.functions_deactivation import merge_conditions_deactivation, extract_df_deactivation_from_excel, deactivation_modelling
+from functions.functions_deactivation_modelling import merge_conditions_deactivation, extract_df_deactivation_from_excel, deactivation_modelling
 from functions.deactivation_models import *
 
 plt.rcParams["font.family"] = "Arial"
@@ -56,19 +56,27 @@ fig.savefig('figures/deactivation_modelling/sty-tos_plot.png', dpi=600)
 # Different models
 n_pow_exp, n_lan = 2, 2
 models = {
-    'pow3': {'func': power_law_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_pow_exp, 50]), 
-             'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
-    'pow2': {'func': power_law_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+    'pow2': {'name': 'Power', 'func': power_law_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
-    'exp3': {'func': exp_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_pow_exp, 50]), 
-             'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))}, 
-    'exp2': {'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+    'exp2': {'name': 'Exponential', 'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
-    'lan3': {'func': langmuir_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_lan, 50]), 
-             'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
-    'lan2': {'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_lan]), 
+    'lan2': {'name': 'Langmuir models', 'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_lan]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))}
 }
+# models = {
+#     'pow3': {'func': power_law_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_pow_exp, 50]), 
+#              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
+#     'pow2': {'func': power_law_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+#              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
+#     'exp3': {'func': exp_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_pow_exp, 50]), 
+#              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))}, 
+#     'exp2': {'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+#              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
+#     'lan3': {'func': langmuir_model_3, 'p0': [0, 0, 0], 'bounds': ([0, 0, 0], [100, n_lan, 50]), 
+#              'param': np.empty((0, 3)), 'perr': np.empty((0, 3)), 'cv': np.empty((0, 3)), 'pcorr': np.empty((0, 3, 3))},
+#     'lan2': {'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_lan]), 
+#              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))}
+# }
 
 # Fit all models
 data_deactivation, models = deactivation_modelling(data_deactivation, models)
