@@ -17,6 +17,7 @@ from functions.functions_MLmodels import save_output, load_model_from_tmp, get_l
 # Configuration
 warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
+mycolor = 'cividis'
 
 # Random state
 rs = 8
@@ -25,9 +26,16 @@ rs = 8
 
 # Import data
 data = pd.read_csv("data/catalysts/data_engineered.csv")
+# data = pd.read_csv("data/catalysts/data_engineered_noSi.csv")
 elements = pd.read_csv('data/catalysts/elements.csv', header=None).squeeze('columns').to_list()
 eng_feat = pd.read_csv('data/catalysts/comp_features.csv', header=None).squeeze('columns').to_list()
-print(data.columns)
+print(data.columns, len(data))
+
+# Cluster colors
+cluster_list = data['Cluster_title']
+clusters = np.sort(cluster_list.unique())
+cmap = plt.get_cmap(mycolor)
+palette = cmap(np.linspace(0, 1, len(clusters)))
 
 # Input features
 input = [
@@ -45,6 +53,7 @@ output = 'STY_Acryl_mmolhg'
 # Drop observations with missing output
 data.dropna(subset=output, inplace=True)
 assert ~data[input].isna().sum().all()
+print('Data with STY: ', len(data))
 
 # Features and target
 # x = data.drop(columns=output)
@@ -66,6 +75,42 @@ fig = plt.figure()
 sns.heatmap(corr_matrix, cmap='plasma_r', xticklabels=x.columns, yticklabels=x.columns, vmin=0, vmax=1, square=True)
 fig.savefig(f"figures/ML_STY/feature_correlation.png", dpi=600, bbox_inches='tight')
 
+# Correlation with STY
+
+# Figure
+fig = plt.figure(figsize=(10, 25))
+gs = fig.add_gridspec(5, 2)
+# gs = np.ravel(gs)
+ax = []
+
+# Partial dependence plot
+for i, feature in enumerate(x.columns):
+
+    # Create subplot
+    ax.append(gs[i//2, i%2].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
+    ax_joint = fig.add_subplot(ax[i][1, 0])
+    ax_x = fig.add_subplot(ax[i][0, 0], sharex=ax_joint)
+    ax_y = fig.add_subplot(ax[i][1, 1], sharey=ax_joint)
+    
+    # Scatter and regression plot
+    sns.scatterplot(x=x.loc[:, feature], y=y, ax=ax_joint, hue=cluster_list, hue_order=clusters, palette=palette)
+    sns.regplot(x=x.loc[:, feature], y=y, ax=ax_joint, order=1, scatter=False, line_kws={"color": 'k'})
+    # sns.regplot(x=x.loc[:, feature], y=y, ax=ax[i], order=1, scatter=False, hue=cluster_list, hue_order=clusters, palette=palette)
+
+    # Labels
+    ax_joint.set(xlabel=feature, ylabel='STY')
+
+    ax_joint.get_legend().remove()
+    sns.kdeplot(ax=ax_x, x=x.loc[:, feature], hue=cluster_list, hue_order=clusters, palette=palette, cut=0)
+    sns.kdeplot(ax=ax_y, y=y, hue=cluster_list, hue_order=clusters, palette=palette, cut=0)
+    for item in [ax_x, ax_y]:
+        item.set_axis_off()
+        item.get_legend().remove()
+fig.savefig(f"figures/ML_STY/target_correlation.png", dpi=600, bbox_inches='tight')
+
+
+# ------------------------------------------------------------------------------------------------------------------
+
 # Preprocessing
 
 # Identify numerical and categorical features
@@ -81,7 +126,7 @@ preprocessor = ColumnTransformer(transformers=[
 # ------------------------------------------------------------------------------------------------------------------
 
 # Loop over and optimize models
-model_to_train = ['xgboost']  #  best_xgboost, xgboost, rf, knn
+model_to_train = ['best_model']  #  best_model, xgboost, rf, knn
 
 # Train models
 # for model, config in model_config.items():
@@ -116,7 +161,7 @@ for model in model_to_train:
 
     # Gridsearch hyperparameter optimization
     # cv = KFold(n_splits=10, shuffle=True)
-    cv = ContinuousStratifiedKFold(n_splits=10, n_iter=50, random_state=rs)
+    cv = ContinuousStratifiedKFold(n_splits=5, n_iter=50, random_state=rs)
     grid_search = GridSearchCV(estimator=pipe, param_grid=config.get('param_grid'), cv=cv, scoring='r2',
                                 n_jobs=-1, verbose=2, return_train_score=True
     )

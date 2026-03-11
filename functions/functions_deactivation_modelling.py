@@ -179,19 +179,20 @@ def deactivation_modelling(data_df, models, target='STY_Acryl_mmolhg_t'):
     # alpha = [0.5, 1, 0.5, 1, 0.5, 1]
 
     # KDE plot of NRMSE values
-    fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    fig, ax = plt.subplots(1, 1, figsize=(3, 3))
     for i, name in enumerate(models.keys()):
-        sns.kdeplot(ax=ax, data=data_df[f'{name}_nrmse'], color=colors[i], alpha=alpha[i], label=name, cut=0)
+        sns.kdeplot(ax=ax, data=data_df[f'{name}_nrmse'], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'), cut=0)
+        ax.axvline(x=models.get(name).get('NRMSE_mean'), color=colors[i], alpha=alpha[i], linestyle='--', linewidth=0.75)
     ax.legend(frameon=False)
-    ax.set(xlabel='NRMSE', xlim=(0, None))
-    fig.savefig('figures/deactivation_modelling/NRMSE_kdeplot.svg', dpi=300, format='svg')
+    ax.set(xlabel='NRMSE', xlim=(0, 0.2), ylim=(0, 14), xticks=[0, 0.05, 0.1, 0.15, 0.2])
+    fig.savefig('figures/deactivation_modelling/NRMSE_kdeplot.svg', dpi=300, format='svg', bbox_inches='tight')
 
     # Error plot of param values
     fig, ax = plt.subplots(1, 3, figsize=(12, 4))
     for i, name in enumerate(models.keys()):
         for j in range(models.get(name).get('param').shape[1]):
-            sns.scatterplot(ax=ax[j], x=models.get(name).get('param')[:, j], y=models.get(name).get('perr')[:, j], color=colors[i], alpha=alpha[i], label=name)
-    ax[0].legend(frameon=False, bbox_to_anchor=(0, 1.02), loc='lower left', ncols=6), ax[1].legend().remove(), ax[2].legend().remove()
+            sns.scatterplot(ax=ax[j], x=models.get(name).get('param')[:, j], y=models.get(name).get('perr')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))
+    ax[0].legend(frameon=False, bbox_to_anchor=(0, 1.02), loc='lower left', ncols=6), ax[1].legend().remove(), # ax[2].legend().remove()
     ax[0].set(xlabel='STY_0', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 100))
     ax[1].set(xlabel='n', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, 1), ylim=(0, 1))
     ax[2].set(xlabel='STY_inf', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 100))
@@ -199,34 +200,66 @@ def deactivation_modelling(data_df, models, target='STY_Acryl_mmolhg_t'):
 
     # CV plot of param values
     n_param = models.get(list(models.keys())[0]).get('param').shape[1]
-    fig, ax = plt.subplots(1, n_param, figsize=(4*n_param, 4))
+    fig = plt.figure(figsize=(3*n_param, 3))
+    gs = fig.add_gridspec(1, n_param)
+    ax, ax_joint, ax_x, ax_y = [], [], [], []
+    for i in range(n_param):
+
+        # Grid and subplots
+        ax.append(gs[0, i].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
+        ax_joint.append(fig.add_subplot(ax[i][1, 0]))
+        ax_x.append(fig.add_subplot(ax[i][0, 0], sharex=ax_joint[i]))
+        ax_y.append(fig.add_subplot(ax[i][1, 1], sharey=ax_joint[i]))
+        
+        # Plot
+        # sns.scatterplot(ax=ax_joint, data=data_deactivation, x='n', y='STY0', hue='Cluster_title', hue_order=clusters, palette=palette)
+        # sns.move_legend(ax_joint, loc='lower center', bbox_to_anchor=(0.5, 1.25), frameon=False, ncols=4, title=None)
+
+        for item in [ax_x[i], ax_y[i]]:
+            item.set_axis_off()
+            # item.get_legend().remove()
+
     for i, name in enumerate(models.keys()):
         for j in range(models.get(name).get('param').shape[1]):
-            sns.scatterplot(ax=ax[j], x=models.get(name).get('param')[:, j], y=models.get(name).get('cv')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))
-    ax[0].legend(frameon=False, bbox_to_anchor=(0, 1.02), loc='lower left', ncols=6)
-    ax[0].set(xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='Coefficient of variation /', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 2))
-    ax[0].set_yscale('symlog', linthresh=0.05, linscale=0.3)
-    ax[1].legend().remove()
-    ax[1].set(xlabel='n /', ylabel='Coefficient of variation /', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 10))
-    ax[1].set_xscale('symlog', linthresh=0.01, linscale=0.3)
-    ax[1].set_yscale('symlog', linthresh=0.1, linscale=0.3)
+            sns.scatterplot(ax=ax_joint[j], x=models.get(name).get('param')[:, j], y=models.get(name).get('cv')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))
+            sns.kdeplot(ax=ax_x[j], x=models.get(name).get('param')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))  #, cut=0)
+            sns.kdeplot(ax=ax_y[j], y=models.get(name).get('cv')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))  #, cut=0)
+
+    ax_joint[0].set(xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='Coefficient of variation /', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 2))
+    ax_joint[0].set_yscale('symlog', linthresh=0.05, linscale=0.3)
+    ax_joint[0].legend().remove()
+    ax_joint[1].set(xlabel='n /', ylabel='Coefficient of variation /', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, 10))
+    ax_joint[1].set_xscale('symlog', linthresh=0.01, linscale=0.3)
+    ax_joint[1].set_yscale('symlog', linthresh=0.1, linscale=0.3)
+    ax_joint[1].legend(frameon=False, bbox_to_anchor=(1.25, 0.5), loc='center left')  #, ncols=6)
     # ax[2].legend().remove()
     # ax[2].set(xlabel='STY_inf', ylabel='Error', xscale='symlog', yscale='symlog', xlim=(0, None), ylim=(0, None))
-    fig.savefig('figures/deactivation_modelling/CV_scatterplot.svg', dpi=300, format='svg')
+    fig.savefig('figures/deactivation_modelling/CV_scatterplot.svg', dpi=300, format='svg', bbox_inches='tight')
+
+    # fig, ax = plt.subplots(1, 2)
+    # ax = np.ravel(ax)
+    # fig2, ax2 = plt.subplots(1, 2)
+    # ax2 = np.ravel(ax2)
+    # for i, name in enumerate(models.keys()):
+    #     for j in range(models.get(name).get('param').shape[1]):
+    #         sns.kdeplot(ax=ax[j], x=models.get(name).get('param')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'), cut=0)
+    #         sns.kdeplot(ax=ax2[j], y=models.get(name).get('cv')[:, j], color=colors[i], alpha=alpha[i], label=models.get(name).get('name'))
+    # fig.savefig('figures/deactivation_modelling/kdex.svg', dpi=300, format='svg')
+    # fig2.savefig('figures/deactivation_modelling/kdey.svg', dpi=300, format='svg')
 
     # Correlation plot 
-    fig, ax = plt.subplots(1, 3, figsize=(12, 8))
-    coo = [(0, 1), (0, 2), (1, 2)]
-    for i, name in enumerate(models.keys()):
-        n = models.get(name).get('param').shape[1]
-        for j in range(int(n*(n-1)/2)):
-            row, col = coo[j]
-            sns.kdeplot(ax=ax[j], x=models.get(name).get('pcorr')[:, row, col], color=colors[i], alpha=alpha[i], label=name, cut=0)
-    ax[0].legend() 
-    ax[0].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - n')
-    ax[1].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - STY$\mathdefault{_{inf}}$')
-    ax[2].set(xlabel='Correlation n - STY$\mathdefault{_{inf}}$')
-    fig.savefig('figures/deactivation_modelling/Corr_kdeplot.svg', dpi=300, format='svg')
+    # fig, ax = plt.subplots(1, 3, figsize=(12, 8))
+    # coo = [(0, 1), (0, 2), (1, 2)]
+    # for i, name in enumerate(models.keys()):
+    #     n = models.get(name).get('param').shape[1]
+    #     for j in range(int(n*(n-1)/2)):
+    #         row, col = coo[j]
+    #         sns.kdeplot(ax=ax[j], x=models.get(name).get('pcorr')[:, row, col], color=colors[i], alpha=alpha[i], label=name, cut=0)
+    # ax[0].legend() 
+    # ax[0].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - n')
+    # ax[1].set(xlabel='Correlation STY$\mathdefault{_{0}}$ - STY$\mathdefault{_{inf}}$')
+    # ax[2].set(xlabel='Correlation n - STY$\mathdefault{_{inf}}$')
+    # fig.savefig('figures/deactivation_modelling/Corr_kdeplot.svg', dpi=300, format='svg')
 
     # ------------------------------------------------------------------------------------------------
 

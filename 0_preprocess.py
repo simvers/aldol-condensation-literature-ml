@@ -1,5 +1,6 @@
 from pathlib import Path
 import pandas as pd
+import matplotlib.pyplot as plt
 from functions.functions_preprocessing import calculate_composition, calculate_molarflowrates, impute_ssa
 
 

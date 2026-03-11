@@ -34,6 +34,7 @@ def get_elements_features(elements, features, feature_labels=None):
     Element.electrophilicity_ = property(lambda self: self.electrophilicity())
     Element.nvalence_ = property(lambda self: self.nvalence())
     Element.ionenergy = property(lambda self: self.ionenergies.get(1))
+    Element.zeff = property(lambda self: self.zeff())
 
     # Initialize dictionary
     element_dir = {}
@@ -66,6 +67,7 @@ def average_element_features(composition_df, element_features_df):
     assert composition_df.notna().all(axis=None)
     assert element_features_df.notna().all(axis=None)
     assert set(composition_df.columns) == set(element_features_df.index)
+    assert (composition_df.columns == element_features_df.index).all(axis=None)
 
     # pd dot product
     # mult_df = composition_df.dot(element_features_df)
@@ -79,3 +81,38 @@ def average_element_features(composition_df, element_features_df):
     diff = feat[None, :, :] - mean[:, None, :]  # (n_obs, n_elem, n_feat)
     var = (comp[:, :, None] * diff**2).sum(axis=1)  # (n_obs, n_elem, n_feat) summed over n_elem
     return pd.DataFrame(mean, columns='av_'+cols, index=rows), pd.DataFrame(var, columns='var_'+cols, index=rows)
+
+
+if __name__ == '__main__':
+
+
+    a = pd.DataFrame(
+        [
+            [1, 0, 0], 
+            [0, 1, 0], 
+            [0, 0, 2]
+        ], 
+        columns=['a', 'c', 'b'],
+        index=['m', 'n', 'o']
+    )
+    b = pd.DataFrame(
+        [
+            [1, 0, 0], 
+            [0, 2, 0], 
+            [0, 0, 1]
+        ],
+        columns=['x', 'y', 'z'], 
+        index=['a', 'b', 'c']
+    )
+    print(a @ b)
+
+    # mean, _ = average_element_features(a, b)
+    # print(mean)
+
+    a = a.reindex(sorted(a.columns), axis=1)
+    print(a)
+
+    mean, _ = average_element_features(a, b)
+    print(mean)
+
+

@@ -19,6 +19,14 @@ centroids.head(5)
 
 # -----------------------------
 
+# Color palette
+clusters = np.sort(data_clustered['Cluster_title'].unique())
+cmap = plt.get_cmap('cividis')
+palette = cmap(np.linspace(0, 1, len(clusters)))
+palette = sns.color_palette(palette, as_cmap=False, desat=0.8)
+
+# -----------------------------
+
 # Print unique values of reaction conditions
 conditions = ['Ac_source', 'Fa_source', 'Stabilizer', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 'O_content', 'LHSV_mlhg', 'Temperature_K', 'Pressure_bar']
 for column in conditions:
@@ -30,8 +38,9 @@ for column in conditions:
 grouped_data = data_clustered[['doi', 'Year', 'Cluster_title']].groupby(['doi', 'Cluster_title', 'Year'], as_index=False).count()
 print(grouped_data)
 print(data_clustered[['doi', 'Year', 'Cluster_title']].groupby(['doi', 'Cluster_title', 'Year'], as_index=False)['doi'].count().to_string())
+
 fig, ax = plt.subplots(1, 1, figsize=(5, 3))
-sns.histplot(grouped_data, x='Year', hue='Cluster_title', palette=mycolor, ax=ax, discrete=True, multiple='stack', shrink=0.8, edgecolor=None, alpha=1)  # multiple 'dodge'
+sns.histplot(grouped_data, x='Year', hue='Cluster_title', palette=palette, ax=ax, discrete=True, multiple='stack', shrink=0.8, edgecolor=None, alpha=1, hue_order=clusters)  # multiple 'dodge'
 sns.move_legend(ax, loc='upper left', frameon=False, title='Catalyst clusters', handlelength=1.5)
 ax.set(ylabel='Publication count', xlim=(1965, 2026))
 fig.tight_layout()
@@ -51,26 +60,26 @@ ax.append(fig.add_subplot(gs[1, 1]))
 
 # Describe Ac_source
 temp_data = data_clustered.groupby(['Ac_source', 'Cluster_title'])['Ac_source'].count().unstack('Cluster_title').fillna(0)/len(data_clustered)*100
-temp_data.plot.bar(ax=ax[0], stacked=True, colormap=mycolor, width=0.1*len(temp_data))
+temp_data.plot.bar(ax=ax[0], stacked=True, color=palette, width=0.1*len(temp_data))
 ax[0].set(xlabel='Ac source', ylabel='Reported catalysts / %')
 ax[0].legend(frameon=False)
 
 # Describe Fa_source
 temp_data = data_clustered.groupby(['Fa_source', 'Cluster_title'])['Fa_source'].count().unstack('Cluster_title').fillna(0)/len(data_clustered)*100
-temp_data.plot.bar(ax=ax[1], stacked=True, colormap=mycolor, width=0.1*len(temp_data))
+temp_data.plot.bar(ax=ax[1], stacked=True, color=palette, width=0.1*len(temp_data))
 ax[1].set(xlabel='Fa source', ylabel='Reported catalysts / %')
 ax[1].get_legend().remove()
 
 # Describe Stab_source
 temp_data = data_clustered.groupby(['Stabilizer', 'Cluster_title'])['Stabilizer'].count().unstack('Cluster_title').fillna(0)/len(data_clustered)*100
-temp_data.plot.bar(ax=ax[2], stacked=True, colormap=mycolor, width=0.1*len(temp_data))
+temp_data.plot.bar(ax=ax[2], stacked=True, color=palette, width=0.1*len(temp_data))
 ax[2].set(xlabel='Additives', ylabel='Reported catalysts / %')
 ax[2].get_legend().remove()
 
 # Describe O_content
 data_clustered['O_presence'] = data_clustered['O_content'] != 0
 temp_data = data_clustered.groupby(['O_presence', 'Cluster_title'])['O_presence'].count().unstack('Cluster_title').fillna(0)/len(data_clustered)*100
-temp_data.plot.bar(ax=ax[3], stacked=True, colormap=mycolor, width=0.1*len(temp_data))
+temp_data.plot.bar(ax=ax[3], stacked=True, color=palette, width=0.1*len(temp_data))
 ax[3].set(xlabel='Oxygen presence', ylabel='Reported catalysts / %')
 ax[3].get_legend().remove()
 
@@ -79,9 +88,6 @@ ax.append(gs[2, 0].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], 
 ax.append(gs[2, 1].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
 
 # Describe LHSV - temperature
-clusters = np.sort(data_clustered['Cluster_title'].unique())
-cmap = plt.get_cmap(mycolor)
-palette = cmap(np.linspace(0, 1, len(clusters)))
 ax_joint = fig.add_subplot(ax[4][1, 0])
 ax_x = fig.add_subplot(ax[4][0, 0], sharex=ax_joint)
 ax_y = fig.add_subplot(ax[4][1, 1], sharey=ax_joint)
@@ -117,3 +123,4 @@ for item in [ax_x, ax_y]:
 
 fig.tight_layout()
 plt.savefig('figures/description/Fig_multi_kde.svg', dpi=300, format='svg')
+

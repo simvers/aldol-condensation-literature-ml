@@ -8,8 +8,8 @@ from functions import functions_MLmodels
 
 
 model_config = {
-    "best_xgboost": {
-        "model": XGBRegressor(verbosity=2, nthread=-1, random_state=8),
+    "best_model": {
+        "model": XGBRegressor(verbosity=1, nthread=-1, random_state=8),
         "param_grid": {
             'model__n_estimators': [500, 1000],           # This is important, which was not there before 
             'model__max_depth': [5],
@@ -25,16 +25,16 @@ model_config = {
     },
 
     "xgboost": {
-        "model": XGBRegressor(verbosity=2, nthread=-1, random_state=8),
+        "model": XGBRegressor(verbosity=1, nthread=-1, random_state=8),
         "param_grid": {
-            'model__n_estimators': [500, 1000],           # This is important, which was not there before 
-            'model__max_depth': [3, 5],
+            'model__n_estimators': [500, 1000],
+            'model__max_depth': [2, 4],  # Decrease to prevent overfitting
             'model__learning_rate': [0.01, 0.1],
-            'model__subsample': [0.5, 1],
-            'model__colsample_bytree': [0.5, 1.0],          
-            'model__min_child_weight': [10],           # this prevents overfitting
-            'model__reg_alpha': [1, 3],
-            'model__reg_lambda': [1, 2],
+            'model__subsample': [0.5, 0.8],
+            'model__colsample_bytree': [0.5, 0.8],          
+            'model__min_child_weight': [10],  # splitting barrier preventing overfitting
+            'model__reg_alpha': [3],  # reg term 1
+            'model__reg_lambda': [2],  # reg term 2
             'model__gamma': [0, 0.5]
         },
         "func_feature_importance": [functions_MLmodels.plot_feature_importance]

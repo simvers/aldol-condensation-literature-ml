@@ -56,11 +56,11 @@ fig.savefig('figures/deactivation_modelling/sty-tos_plot.png', dpi=600)
 # Different models
 n_pow_exp, n_lan = 2, 2
 models = {
-    'pow2': {'name': 'Power', 'func': power_law_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+    'pow2': {'name': 'Power eq.', 'func': power_law_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
-    'exp2': {'name': 'Exponential', 'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
+    'exp2': {'name': 'Exponential eq.', 'func': exp_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_pow_exp]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))},
-    'lan2': {'name': 'Langmuir models', 'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_lan]), 
+    'lan2': {'name': 'Langmuir eq.', 'func': langmuir_model_2, 'p0': [0, 0], 'bounds': ([0, 0], [100, n_lan]), 
              'param': np.empty((0, 2)), 'perr': np.empty((0, 2)), 'cv': np.empty((0, 2)), 'pcorr': np.empty((0, 2, 2))}
 }
 # models = {
@@ -84,7 +84,7 @@ data_deactivation, models = deactivation_modelling(data_deactivation, models)
 # ------------------------------------------------------------------------------------------------
 
 # Save data
-best_model = 'lan2'
+best_model = 'exp2'
 data_deactivation.rename(columns={best_model + '_STY0': 'STY0', best_model + '_n': 'n'}, inplace=True)
 data_deactivation.loc[:, initial_columns + ['STY0', 'n']].to_csv('data/catalysts/data_deactivation.csv', index=False)
 
@@ -94,15 +94,49 @@ cmap = plt.get_cmap(mycolor)
 palette = cmap(np.linspace(0, 1, len(clusters)))
 
 # Scatter plot of sty0 vs n
-fig, ax = plt.subplots(1, 1, figsize=(4, 4))
-sns.scatterplot(ax=ax, data=data_deactivation, x='STY0', y='n', hue='Cluster_title', hue_order=clusters, palette=palette)
-sns.move_legend(ax, loc='lower center', bbox_to_anchor=(0.5, 1.05), frameon=False, ncols=4, title=None)
-ax.set(xscale='symlog', xlim=(0, None), ylim=(0, None), xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='n /')
-ax.set_yscale('symlog', linthresh=1e-2)
-ax.xaxis.set_major_formatter(mticker.ScalarFormatter())
-ax.yaxis.set_major_formatter(mticker.ScalarFormatter())
-# fig.tight_layout()
-fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-n_scatterplot.svg', dpi=300, format='svg')
+# fig, ax = plt.subplots(1, 1, figsize=(4, 4))
+fig = plt.figure(figsize=(3, 3))
+gs = fig.add_gridspec(1, 1)
+ax = []
+ax.append(gs[0, 0].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
+ax_joint = fig.add_subplot(ax[0][1, 0])
+ax_x = fig.add_subplot(ax[0][0, 0], sharex=ax_joint)
+ax_y = fig.add_subplot(ax[0][1, 1], sharey=ax_joint)
+sns.scatterplot(ax=ax_joint, data=data_deactivation, x='n', y='STY0', hue='Cluster_title', hue_order=clusters, palette=palette)
+ax_joint.legend().remove()
+# sns.move_legend(ax_joint, loc='center left', bbox_to_anchor=(1.25, 0.5), frameon=False, title=None)
+ax_joint.set(yscale='symlog', xlim=(0, 1), ylim=(0, None), ylabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', xlabel='n /')
+ax_joint.set_xscale('symlog', linthresh=1e-2)
+ax_joint.xaxis.set_major_formatter(mticker.ScalarFormatter())
+ax_joint.yaxis.set_major_formatter(mticker.ScalarFormatter())
+sns.kdeplot(ax=ax_x, data=data_deactivation, x='n', hue='Cluster_title', hue_order=clusters, palette=palette)
+sns.kdeplot(ax=ax_y, data=data_deactivation, y='STY0', hue='Cluster_title', hue_order=clusters, palette=palette)
+for item in [ax_x, ax_y]:
+    item.set_axis_off()
+    item.get_legend().remove()
+fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-n_scatterplot.svg', dpi=300, format='svg', bbox_inches='tight')
+
+# fig, ax = plt.subplots(1, 1, figsize=(4, 4))
+data_no_oxygen = data_deactivation.loc[data_deactivation['O_content'] < 0.00001, :]
+fig = plt.figure(figsize=(3, 3))
+gs = fig.add_gridspec(1, 1)
+ax = []
+ax.append(gs[0, 0].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
+ax_joint = fig.add_subplot(ax[0][1, 0])
+ax_x = fig.add_subplot(ax[0][0, 0], sharex=ax_joint)
+ax_y = fig.add_subplot(ax[0][1, 1], sharey=ax_joint)
+sns.scatterplot(ax=ax_joint, data=data_no_oxygen, x='n', y='STY0', hue='Cluster_title', hue_order=clusters, palette=palette)
+sns.move_legend(ax_joint, loc='center left', bbox_to_anchor=(1.25, 0.5), frameon=False, title=None)
+ax_joint.set(yscale='symlog', xlim=(0, 1), ylim=(0, None), ylabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', xlabel='n /')
+ax_joint.set_xscale('symlog', linthresh=1e-2)
+ax_joint.xaxis.set_major_formatter(mticker.ScalarFormatter())
+ax_joint.yaxis.set_major_formatter(mticker.ScalarFormatter())
+sns.kdeplot(ax=ax_x, data=data_no_oxygen, x='n', hue='Cluster_title', hue_order=clusters, palette=palette)
+sns.kdeplot(ax=ax_y, data=data_no_oxygen, y='STY0', hue='Cluster_title', hue_order=clusters, palette=palette)
+for item in [ax_x, ax_y]:
+    item.set_axis_off()
+    item.get_legend().remove()
+fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-n_scatterplot_no_oxygen.svg', dpi=300, format='svg', bbox_inches='tight')
 
 # Scatter plot of sty0 vs sty
 fig, ax = plt.subplots(1, 1, figsize=(4, 4))
@@ -111,4 +145,5 @@ ax.plot([0, 50], [0, 50], '-k', linewidth=0.5)
 sns.move_legend(ax, loc='lower center', bbox_to_anchor=(0.5, 1.05), frameon=False, ncols=4, title=None)
 ax.set(xlim=(0, 50), ylim=(0, 50), xlabel='STY$_{\mathdefault{0, model}}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='STY$_{\mathdefault{0, reported}}$ / mmol h$^{-1}$ g$^{-1}$')
 fig.savefig(f'figures/deactivation_modelling/{best_model}_sty0-sty_scatterplot.svg', dpi=300, format='svg')
+
 

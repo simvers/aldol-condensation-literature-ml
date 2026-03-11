@@ -39,7 +39,7 @@ def analyze_fit(popt, pcov):
     perr = np.sqrt(np.diag(pcov))
 
     # Coefficient of variation
-    cv = np.abs(perr/popt)
+    cv = np.where(popt < 0.00001, 0, np.abs(perr/popt))
 
     # Correlation matrix and check for nans
     with np.errstate(divide='ignore', invalid='ignore'):
