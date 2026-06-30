@@ -20,6 +20,8 @@ dist/
 # Development
 .development*
 .experimental*
+.old_version*
+.github*
 *tmp*
 *pycache*
 test.py
