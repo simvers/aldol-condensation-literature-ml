@@ -41,11 +41,13 @@ def analyze_fit(popt, pcov):
     # Coefficient of variation
     cv = np.where(popt < 0.00001, 0, np.abs(perr/popt))
 
-    # Correlation matrix and check for nans
+    # Correlation matrix; denom is 0 wherever a parameter has perr == 0 (e.g. fixed at a bound),
+    # so divide-by-zero there is expected and replaced with 0 instead of nan/inf
     with np.errstate(divide='ignore', invalid='ignore'):
         denom = np.outer(perr, perr)
         pcorr = np.where(denom != 0, pcov / denom, 0)
-    assert np.isnan(pcorr).sum() == 0
+    if np.isnan(pcorr).sum() != 0:
+        raise ValueError("pcorr contains unexpected NaNs after the zero-division guard")
 
     return perr, cv, pcorr
 

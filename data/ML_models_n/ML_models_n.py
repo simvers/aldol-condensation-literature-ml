@@ -4,24 +4,37 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from lightgbm import LGBMRegressor
-from functions import functions_MLmodels
 
 
-model_config_grid = {
-    "xgboost": {
-        "model": XGBRegressor(verbosity = 2, nthread = 8),
-        "search_space": {
-            'reg__max_depth': [2, 8],
-            'reg__learning_rate': [0.001, 0.01, 1],
-            'reg__subsample': [0.5, 1.0],
-            'reg__colsample_bytree': [0.5, 1.0],
-            'reg__colsample_bylevel': [0.5, 1.0],
-            'reg__colsample_bynode' : [0.5, 1.0],
-            'reg__reg_alpha': [0.0, 10.0],
-            'reg__reg_lambda': [0.0, 10.0],
-            'reg__gamma': [0.0, 10.0]
+model_config = {
+    "best_model": {
+        "model": XGBRegressor(verbosity=0, nthread=-1, random_state=8),
+        "param_grid": {
+            'model__n_estimators': [5, 10],           # This is important, which was not there before 
+            'model__max_depth': [5, 6],  
+            'model__learning_rate': [0.4,],  # [0.1]
+            'model__subsample': [0.5],
+            'model__colsample_bytree': [0.5],          
+            'model__min_child_weight': [4, 5],           # this prevents overfitting  [10, 20]
+            'model__reg_alpha': [0.1],  # L1 regularization for sparse model [1]
+            'model__reg_lambda': [8],  # L2 regularization for spread weights [1, 2]
+            'model__gamma': [0]
         },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
+    },
+
+    "xgboost": {
+        "model": XGBRegressor(verbosity = 0, nthread = 8),
+        "param_grid": {
+            'model__n_estimators': [50],           # This is important, which was not there before 
+            'model__max_depth': [2],
+            'model__learning_rate': [0.02, 0.1],
+            'model__subsample': [0.5, 1],
+            'model__colsample_bytree': [0.5, 0.7],
+            'model__min_child_weight': [3, 5],           # this prevents overfitting  [10, 20]
+            'model__reg_alpha': [0.1],
+            'model__reg_lambda': [5, 8],
+            'model__gamma': [0.0]
+        },
     },
 
     "rf": {
@@ -42,7 +55,6 @@ model_config_grid = {
             # "reg__min_impurity_decrease": [0.0, 0.001, 0.005],
             # "reg__max_samples": [0.8, 0.9, 1.0]
         },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     },
 
     "svr": {
@@ -53,7 +65,6 @@ model_config_grid = {
             'reg__kernel': ['rbf', 'poly', 'sigmoid'],
             'reg__gamma': ['scale', 'auto']
         },
-        "func_feature_importance": None
     },
 
     "knn": {
@@ -63,7 +74,6 @@ model_config_grid = {
             'reg__weights': ['uniform', 'distance'],
             'reg__p': [1, 2]  # 1 = Manhattan, 2 = Euclidean
         },
-        "func_feature_importance": None
     },
 
     "lgbm": {
@@ -78,73 +88,5 @@ model_config_grid = {
             'reg__reg_alpha': [1, 10],
             'reg__reg_lambda': [1, 10]
         },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
-    }
-}
-
-
-model_config_bayes = {
-    "xgboost": {
-        "model": XGBRegressor(verbosity = 2, nthread = 8),
-        "search_space": {
-            'reg__max_depth': Integer(2,8),
-            'reg__learning_rate': Real(0.001, 1.0, prior='log-uniform'),
-            'reg__subsample': Real(0.5, 1.0),
-            'reg__colsample_bytree': Real(0.5, 1.0),
-            'reg__colsample_bylevel': Real(0.5, 1.0),
-            'reg__colsample_bynode' : Real(0.5, 1.0),
-            'reg__reg_alpha': Real(0.0, 10.0),
-            'reg__reg_lambda': Real(0.0, 10.0),
-            'reg__gamma': Real(0.0, 10.0)
-        },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
-    },
-
-    "rf": {
-        "model": RandomForestRegressor(random_state=8, n_jobs=-1, verbose=0),
-        "search_space": {
-            'reg__n_estimators': Integer(100, 1000),
-            'reg__max_depth': Integer(2, 20),
-            'reg__min_samples_split': Integer(2, 20),
-            'reg__min_samples_leaf': Integer(1, 10),
-            'reg__max_features': Real(0.3, 1.0)
-        },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
-    },
-
-    "svr": {
-        "model": SVR(),
-        "search_space": {
-            'reg__C': Real(0.01, 100, prior='log-uniform'),
-            'reg__epsilon': Real(0.001, 1.0, prior='log-uniform'),
-            'reg__kernel': Categorical(['rbf', 'poly', 'sigmoid']),
-            'reg__gamma': Categorical(['scale', 'auto'])
-        },
-        "func_feature_importance": None
-    },
-
-    "knn": {
-        "model": KNeighborsRegressor(),
-        "search_spcace": {
-            'reg__n_neighbors': Integer(1, 30),
-            'reg__weights': Categorical(['uniform', 'distance']),
-            'reg__p': Integer(1, 2)  # 1 = Manhattan, 2 = Euclidean
-        },
-        "func_feature_importance": None
-    },
-
-    "lgbm": {
-        "model": LGBMRegressor,
-        "search_space": {
-            'reg__num_leaves': Integer(15, 150),
-            'reg__max_depth': Integer(3, 12),
-            'reg__learning_rate': Real(0.001, 0.5, prior='log-uniform'),
-            'reg__n_estimators': Integer(50, 500),
-            'reg__subsample': Real(0.5, 1.0),
-            'reg__colsample_bytree': Real(0.5, 1.0),
-            'reg__reg_alpha': Real(0.0, 10.0),
-            'reg__reg_lambda': Real(0.0, 10.0)
-        },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     }
 }

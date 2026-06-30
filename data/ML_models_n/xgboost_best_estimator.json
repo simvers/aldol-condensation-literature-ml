@@ -1,11 +1,11 @@
 {
-    "reg__colsample_bylevel": 0.5,
-    "reg__colsample_bynode": 1.0,
-    "reg__colsample_bytree": 0.5,
-    "reg__gamma": 0.0,
-    "reg__learning_rate": 0.01,
-    "reg__max_depth": 8,
-    "reg__reg_alpha": 0.0,
-    "reg__reg_lambda": 0.0,
-    "reg__subsample": 0.5
+    "model__colsample_bylevel": 0.5,
+    "model__colsample_bynode": 1.0,
+    "model__colsample_bytree": 0.5,
+    "model__gamma": 0.0,
+    "model__learning_rate": 1,
+    "model__max_depth": 8,
+    "model__reg_alpha": 0.0,
+    "model__reg_lambda": 10.0,
+    "model__subsample": 0.5
 }

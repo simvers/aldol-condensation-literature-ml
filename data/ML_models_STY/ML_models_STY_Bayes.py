@@ -4,7 +4,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from lightgbm import LGBMRegressor
-from functions import functions_MLmodels
 
 
 model_config = {
@@ -21,7 +20,6 @@ model_config = {
             'reg__reg_lambda': Real(0.0, 10.0),
             'reg__gamma': Real(0.0, 10.0)
         },
-        "func_feature_importance": [functions_MLmodels.plot_feature_importance]
     },
 
     "rf": {
@@ -33,7 +31,6 @@ model_config = {
             'reg__min_samples_leaf': Integer(1, 10),
             'reg__max_features': Real(0.3, 1.0)
         },
-        "func_feature_importance": [functions_MLmodels.permutation_feature_importance]
     },
 
     "svr": {
@@ -44,7 +41,6 @@ model_config = {
             'reg__kernel': Categorical(['rbf', 'poly', 'sigmoid']),
             'reg__gamma': Categorical(['scale', 'auto'])
         },
-        "func_feature_importance": None
     },
 
     "knn": {
@@ -54,7 +50,6 @@ model_config = {
             'reg__weights': Categorical(['uniform', 'distance']),
             'reg__p': Integer(1, 2)  # 1 = Manhattan, 2 = Euclidean
         },
-        "func_feature_importance": None
     },
 
     "lgbm": {
@@ -69,6 +64,5 @@ model_config = {
             'reg__reg_alpha': Real(0.0, 10.0),
             'reg__reg_lambda': Real(0.0, 10.0)
         },
-        "func_feature_importance": [functions_MLmodels.plot_feature_importance]
     }
 }

@@ -1,8 +1,9 @@
+import subprocess
 
-files = ["0_preprocess.py",
-         "1_clustering.py",
-         "2_description.py"
+files = ["scripts/0_preprocess.py",
+         "scripts/1_clustering.py",
+         "scripts/2_description.py"
 ]
 
 for file in files:
-    exec(open(file).read())
+    subprocess.run(["python", file], check=True)

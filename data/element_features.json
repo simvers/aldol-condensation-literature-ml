@@ -1,0 +1,11 @@
+{
+    "covalent_radius_cordero": "cov_rad",
+    "nvalence_": "n_val",
+    "en_pauling": "en_pauling",
+    "lattice_constant": "lat_cst",
+    "electron_affinity": "e_aff",
+    "electrophilicity_": "e_phil",
+    "vdw_radius": "vdw_rad",
+    "ionenergy": "ionenergy",
+    "dipole_polarizability": "polarization"
+}

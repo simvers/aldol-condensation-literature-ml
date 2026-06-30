@@ -1,6 +1,0 @@
-{
-    "reg__C": 0.01,
-    "reg__epsilon": 0.001,
-    "reg__gamma": "scale",
-    "reg__kernel": "rbf"
-}
