@@ -1,6 +1,3 @@
-# Custom files
-doi.txt
-
 # Jupyter notebooks
 *.ipynb
 
@@ -17,11 +14,13 @@ build/
 dist/
 *.egg-info/
 
+# Markdown (except README)
+*.md
+!README.md
+
 # Development
 .development*
-.experimental*
 .old_version*
 .github*
 *tmp*
 *pycache*
-test.py
