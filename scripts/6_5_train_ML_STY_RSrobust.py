@@ -7,11 +7,11 @@ Writes: data/ML_models_STY/{MODEL_NAME}_robustness_data.pkl, figures/ML_STY/robu
 Edit before running: DATA_TYPE, MODEL_NAME, REAC_INPUT, CAT_INPUT, TCV_TYPE, N_RS
 """
 
-import sys
+import sys, os
+os.environ["PYTHONWARNINGS"] = "ignore"
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import os
 import warnings
 warnings.filterwarnings("ignore")
 from datetime import datetime

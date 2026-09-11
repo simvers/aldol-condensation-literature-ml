@@ -11,10 +11,19 @@ conda env create -f environment.yml
 conda activate simvers_ml_py311
 ```
 
-There is no build system or test harness. Scripts are not parameterized via CLI — each script has a short docstring at the top listing what it reads/writes and which variables to edit before running. **Always run from the repository root**, since all paths are relative to it:
+There is no build system or test harness. Scripts are not parameterized via CLI — each script has a short docstring at the top listing what it reads/writes and which variables to edit before running. **Always run from the repository root**, since all paths are relative to it.
+
+Stages `0`–`5` do not need any configuration and can be run in sequence in one go:
 
 ```bash
-python scripts/0_preprocess_dataset.py
+for f in 0_preprocess_dataset 1_cluster_catalysts 2_describe_dataset 3_engineer_features 4_fit_deactivation 5_check_feature_correlation; do
+    python scripts/${f}.py
+done
+```
+
+Then, any `6_*`/`7_*` script can be run individually — check its docstring first for which model(s)/settings it uses:
+
+```bash
 python scripts/6_2_train_ML_STY_CV_feateng.py
 ```
 

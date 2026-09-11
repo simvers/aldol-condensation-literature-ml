@@ -8,6 +8,7 @@ Edit before running: DATA_TYPE, RS, REAC_INPUT, TCV_TYPE, MODEL_TO_TRAIN
 """
 
 import sys, os
+os.environ["PYTHONWARNINGS"] = "ignore"
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 

@@ -8,6 +8,7 @@ Edit before running: RSS, DATA_TYPE, MODEL_TO_TRAIN, TT_TYPE, TCV_TYPE
 """
 
 import sys, os
+os.environ["PYTHONWARNINGS"] = "ignore"
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
