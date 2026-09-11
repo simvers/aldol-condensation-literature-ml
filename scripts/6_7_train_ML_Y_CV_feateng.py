@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import warnings
+warnings.filterwarnings("ignore")
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,7 +22,6 @@ from src import ml_training, ml_plotting, utils
 
 ROOT = Path(__file__).resolve().parents[1]
 
-warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
 
 RS = 16  # random seed for CV folding and model fitting

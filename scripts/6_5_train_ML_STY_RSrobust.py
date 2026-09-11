@@ -13,6 +13,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import os
 import warnings
+warnings.filterwarnings("ignore")
 from datetime import datetime
 import numpy as np
 import pandas as pd
@@ -27,7 +28,6 @@ from src import ml_training, ml_plotting, utils
 
 ROOT = Path(__file__).resolve().parents[1]
 
-warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
 
 # -----------------------------------------------------------------------------------------

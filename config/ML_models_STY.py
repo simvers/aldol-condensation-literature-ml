@@ -15,7 +15,7 @@ model_config = {
     "xgboost_reg": {
         "name": "Extreme Gradient Boosting",
         "abb": "XGB",
-        "model": XGBRegressor(verbosity=0, nthread=-1, device='cuda'),
+        "model": XGBRegressor(verbosity=0, nthread=-1, device='cpu'),
         "param_grid": {
             'model__n_estimators': [300, 500],
             'model__max_depth': [2, 3],  # Decrease to prevent overfitting
@@ -190,7 +190,7 @@ model_config = {
     "xgboost_yield": {
         "name": "Extreme Gradient Boosting",
         "abb": "XGB",
-        "model": XGBRegressor(verbosity=0, nthread=-1, device='cuda'),
+        "model": XGBRegressor(verbosity=0, nthread=-1, device='cpu'),
         "param_grid": {
             'model__n_estimators': [300, 500],
             'model__max_depth': [2, 3, 5],  # Decrease to prevent overfitting
