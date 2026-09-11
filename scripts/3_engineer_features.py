@@ -9,7 +9,7 @@ Writes: data/processed/data_engineered{suffix}.csv, data/processed/engineered_fe
 Edit before running: DROP_Si, SELECTED_FEATURES
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -30,6 +30,7 @@ PALETTE = ["#009688", "#1565C0", "#AD1457"]
 
 # Context variables
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'figures/features_engineering', exist_ok=True)
 VERBOSE = True
 
 # Remove Si from features calculations

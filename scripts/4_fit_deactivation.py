@@ -8,7 +8,7 @@ Writes: data/processed/data_deactivation{suffix}.csv, figures/deactivation_model
 Edit before running: DROP_Si, BEST_MODEL, N_PARAMS
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -24,6 +24,7 @@ plt.rcParams["font.family"] = "Arial"
 plt.rcParams["font.size"] = 8
 
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'figures/deactivation_modelling', exist_ok=True)
 VERBOSE = True
 
 DROP_Si = True  # use the Si-excluded engineered feature set as input

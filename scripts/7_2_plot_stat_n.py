@@ -8,7 +8,7 @@ Writes: figures/Stats_n/*.svg
 Edit before running: DATA_TYPE
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -35,6 +35,7 @@ plt.rcParams["font.size"] = 8
 DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 FIGURE_DIR = ROOT / 'figures/Stats_n'
+os.makedirs(FIGURE_DIR, exist_ok=True)
 
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 

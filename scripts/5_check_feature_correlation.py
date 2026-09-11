@@ -8,7 +8,7 @@ Writes: figures/feature_correlation/*.svg
 Edit before running: SUFFIX, REAC_INPUT, CAT_INPUT
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -28,6 +28,7 @@ plt.rcParams["font.size"] = 8
 
 # Context variables
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'figures/feature_correlation', exist_ok=True)
 SUFFIX = '_noSi'  # '' to include Si in the engineered feature set
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 

@@ -6,7 +6,7 @@ Reads:  data/raw/data_raw.xlsx
 Writes: data/processed/data_processed.csv, data/processed/elements.csv
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -14,6 +14,7 @@ import pandas as pd
 from src import preprocessing, utils
 
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'data/processed', exist_ok=True)
 
 ELEMENT_COLUMNS = ['Supp_1', 'Supp_2', 'Atom_1', 'Atom_2', 'Atom_3', 'Atom_4']
 

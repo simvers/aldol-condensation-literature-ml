@@ -40,7 +40,8 @@ TCV_TYPE = 'stratified-grouped'
 N_FOLD = 4
 
 MODEL_TO_TRAIN = ['lgbm_reg']  # keys from config/ML_models_STY.py's model_config
-# MODEL_TO_TRAIN = ['xgboost_reg', 'lgbm_reg', 'rf_reg', 'knn_reg', 'svr_reg', 'gp']
+# uncomment to run all models
+# MODEL_TO_TRAIN = ['xgboost_reg', 'lgbm_reg', 'rf_reg', 'knn_reg', 'svr_reg', 'gp']  
 
 # Uncomment to run lgbm_reg without DOI grouping
 # TCV_TYPE = 'stratified'

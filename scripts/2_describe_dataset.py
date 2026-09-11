@@ -6,7 +6,7 @@ Reads:  data/processed/data_clustered.csv, data/processed/elements.csv, data/pro
 Writes: figures/description/*.svg, figures/description/*.png
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -31,6 +31,7 @@ plt.rcParams["font.size"] = 8
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'figures/description', exist_ok=True)
 VERBOSE = True
 
 with open(ROOT / 'config/feature_labels.json') as f:

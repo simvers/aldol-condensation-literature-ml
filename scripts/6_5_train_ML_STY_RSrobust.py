@@ -71,6 +71,7 @@ if __name__ == "__main__":
 
     start_time = datetime.now()
     os.makedirs(FIGURE_DIR, exist_ok=True)
+    os.makedirs(ROOT / 'data/ML_models_STY', exist_ok=True)
 
     config = model_config[MODEL_NAME]
 

@@ -146,11 +146,11 @@ def plot_partial_dependence(model, x: pd.DataFrame, shap_values=None):
 
     # Sort features
     n_feats = len(features_sorted)
-    n_rows = int(np.ceil(n_feats / 2))
-    has_empty = (n_rows * 2 > n_feats)
+    n_col = 3 if n_feats >= 9 else 2  # switch to a 3rd column once the grid gets tall
+    n_rows = int(np.ceil(n_feats / n_col))
 
     # Figure
-    fig, axes = plt.subplots(n_rows, 2, figsize=(8, n_rows * 4),
+    fig, axes = plt.subplots(n_rows, n_col, figsize=(n_col * 4, n_rows * 4),
                               gridspec_kw={'hspace': 0.3, 'wspace': 0.3})
     axes = axes.ravel()
 
@@ -187,8 +187,8 @@ def plot_partial_dependence(model, x: pd.DataFrame, shap_values=None):
                 fontsize=10, fontweight='bold', fontfamily='arial', transform=ax.transAxes)
         ax.set_box_aspect(1)
 
-    if has_empty:
-        axes[-1].axis('off')
+    for ax in axes[n_feats:]:
+        ax.axis('off')
 
     return fig, axes
 
@@ -206,13 +206,13 @@ def plot_shap_values(model, x: pd.DataFrame, shap_values, hue, hue_order, palett
     features_sorted = x.columns[col_order].tolist()
 
     n_feats = len(features_sorted)
-    n_rows = int(np.ceil(n_feats / 2))
-    has_empty = (n_rows * 2 > n_feats)
+    n_col = 3 if n_feats >= 9 else 2  # switch to a 3rd column once the grid gets tall
+    n_rows = int(np.ceil(n_feats / n_col))
 
     expected_output_val = model.predict(x).mean()
 
-    fig, axes = plt.subplots(n_rows, 2, figsize=(8, n_rows * 4),
-                              gridspec_kw={'hspace': 0.3, 'wspace': 0.3})
+    fig, axes = plt.subplots(n_rows, n_col, figsize=(n_col * 3, n_rows * 3),
+                              gridspec_kw={'hspace': 0.5, 'wspace': 0.5})
     axes = axes.ravel()
 
     for plot_i, feature in enumerate(features_sorted):
@@ -250,16 +250,18 @@ def plot_shap_values(model, x: pd.DataFrame, shap_values, hue, hue_order, palett
                 f'E[f(x)]', va='center', rotation=270, fontsize=7)
         ax.set_box_aspect(1)
 
-    # Single legend: in the empty subplot if n_feats is odd, else in the top-left plot
+    # Single legend: in the first empty trailing subplot if any, else in the top-left plot
     legend_handles = [Line2D([0], [0], marker='o', color='w', markerfacecolor=palette[i],
                               label=str(label), markersize=6)
                       for i, label in enumerate(hue_order)]
-    if has_empty:
-        legend_ax = axes[-1]
+    if n_feats < len(axes):
+        for ax in axes[n_feats + 1:]:
+            ax.axis('off')
+        legend_ax = axes[n_feats]
         legend_ax.axis('off')
         legend_ax.legend(handles=legend_handles, loc='center', frameon=False)
     else:
-        axes[0].legend(handles=legend_handles, loc='upper left', frameon=False, fontsize=7)
+        axes[0].legend(handles=legend_handles, loc='best', frameon=False, fontsize=7)
 
     return fig, axes
 

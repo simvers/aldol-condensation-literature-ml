@@ -7,7 +7,7 @@ Writes: data/processed/data_clustered.csv, data/processed/centroids.csv, figures
 Edit before running: BINARIZE, N_CLUSTER, RS
 """
 
-import sys
+import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
@@ -27,6 +27,7 @@ plt.rcParams["font.family"] = "Arial"
 plt.rcParams["font.size"] = 8
 
 ROOT = Path(__file__).resolve().parents[1]
+os.makedirs(ROOT / 'figures/clustering', exist_ok=True)
 
 PALETTE = ["#009688", "#1565C0", "#AD1457"]  # one color per cluster
 BINARIZE = True  # cluster on element presence/absence rather than molar fraction
