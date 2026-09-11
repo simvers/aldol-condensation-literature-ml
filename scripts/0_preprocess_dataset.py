@@ -1,3 +1,11 @@
+"""
+Preprocess the raw literature dataset: encode catalyst composition, compute molar
+flow rates, and impute missing SSA values.
+
+Reads:  data/raw/data_raw.xlsx
+Writes: data/processed/data_processed.csv, data/processed/elements.csv
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))

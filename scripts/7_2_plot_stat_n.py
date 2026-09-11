@@ -1,3 +1,13 @@
+"""
+Partial-correlation (Spearman, covariance-controlled) analysis of deactivation drivers:
+STY0-n relationships, per-feature scatter-kde plots, and univariate vs.
+STY0/O_content-controlled Spearman rho per catalyst cluster.
+
+Reads:  data/processed/data_deactivation{DATA_TYPE}.csv, data/processed/elements.csv
+Writes: figures/Stats_n/*.svg
+Edit before running: DATA_TYPE
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -7,13 +17,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.ticker as mticker
 import seaborn as sns
 import string
 import json
 from matplotlib.colorbar import ColorbarBase
 from matplotlib.lines import Line2D
 from scipy.stats import spearmanr
-from src import stats_deact
+from src import stats_analysis
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,11 +32,59 @@ warnings.filterwarnings("ignore")
 plt.rcParams["font.family"] = "Arial"
 plt.rcParams["font.size"] = 8
 
-DATA_TYPE = '_noSi'
+DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 FIGURE_DIR = ROOT / 'figures/Stats_n'
 
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
+
+
+def plot_sty0_n_scatter(fig, gs_cell, data, clusters, palette, show_legend, panel_label, reg=False, log_scale=True):
+    # STY0 vs n scatter with marginal KDEs — called for the full dataset and the oxygen-free subset
+    sub_gs = gs_cell.subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0)
+    ax_joint = fig.add_subplot(sub_gs[1, 0])
+    ax_x = fig.add_subplot(sub_gs[0, 0], sharex=ax_joint)
+    ax_y = fig.add_subplot(sub_gs[1, 1], sharey=ax_joint)
+    # ax_joint.set_box_aspect(1)
+
+    # Plot
+    # if reg:
+    #     for i, cluster in enumerate(clusters):
+    #         sns.regplot(ax=ax_joint, data=data[data['Cluster_title'] == cluster], x='STY0', y='n', label=cluster, color=PALETTE[i], scatter_kws={'alpha': 0.6})
+    # else:
+    #     sns.scatterplot(ax=ax_joint, data=data, x='STY0', y='n', hue='Cluster_title', hue_order=clusters, palette=palette, alpha=0.6)
+    sns.scatterplot(ax=ax_joint, data=data, x='STY0', y='n', hue='Cluster_title', hue_order=clusters, palette=palette, alpha=0.6, s=20)
+    if reg:
+        for i, cluster in enumerate(clusters):
+            sns.regplot(ax=ax_joint, data=data[data['Cluster_title'] == cluster], x='STY0', y='n', color=PALETTE[i], scatter=False, robust=False)
+
+    # Legend
+    ax_joint.legend()
+    if show_legend:
+        sns.move_legend(ax_joint, loc='center left', bbox_to_anchor=(1.25, 0.5), frameon=False, title=None, ncols=1)
+    else:
+        ax_joint.legend().remove()
+
+    # Axes
+    if log_scale:
+        ax_joint.set_xscale('symlog')
+        ax_joint.set_yscale('symlog', linthresh=1e-2)
+        ax_joint.xaxis.set_major_formatter(mticker.ScalarFormatter())
+        ax_joint.yaxis.set_major_formatter(mticker.ScalarFormatter())
+    ax_joint.set(xlim=(0, None), ylim=(0, 1),
+                 xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='n /')
+
+    # Marginal plots
+    sns.kdeplot(ax=ax_x, data=data, x='STY0', hue='Cluster_title', hue_order=clusters, palette=palette, fill=True, alpha=0.25, clip=(0, None), cut=1)
+    sns.kdeplot(ax=ax_y, data=data, y='n', hue='Cluster_title', hue_order=clusters, palette=palette, fill=True, alpha=0.25, clip=(0, None), cut=1)
+    for item in [ax_x, ax_y]:
+        item.set_axis_off()
+        item.get_legend().remove()
+
+    # Number plot
+    ax_joint.text(-0.2/5*6, 1.1/5*6, panel_label, fontsize=10, fontweight='bold', fontfamily='arial', transform=ax_joint.transAxes)
+
+    return ax_joint
 
 
 if __name__ == "__main__":
@@ -63,55 +122,34 @@ if __name__ == "__main__":
     # ------------------------------------------------------------------------------------------------------------------
 
     # Scatter plot of sty0 vs n
-    fig = plt.figure(figsize=(4, 4))
-    gs = fig.add_gridspec(1, 1)
-    ax = []
-    ax.append(gs[0, 0].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
-    ax_joint = fig.add_subplot(ax[0][1, 0])
-    ax_x = fig.add_subplot(ax[0][0, 0], sharex=ax_joint)
-    ax_y = fig.add_subplot(ax[0][1, 1], sharey=ax_joint)
-    ax_joint.set_box_aspect(1)
-    for i, cluster in enumerate(clusters):
-        sns.regplot(ax=ax_joint, data=data_no_oxygen[data_no_oxygen['Cluster_title'] == cluster], x='STY0', y='n', label=cluster, color=PALETTE[i])
-    ax_joint.legend()
-    sns.move_legend(ax_joint, loc='lower center', bbox_to_anchor=(0.5, 1.05), frameon=False, ncols=4, title=None)
-    ax_joint.set(xlim=(0.1, 40), ylim=(0, 0.3), xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='n /')
-    sns.kdeplot(ax=ax_x, data=data_no_oxygen, x='STY0', hue='Cluster_title', hue_order=clusters, palette=PALETTE, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    sns.kdeplot(ax=ax_y, data=data_no_oxygen, y='n', hue='Cluster_title', hue_order=clusters, palette=PALETTE, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    for item in [ax_x, ax_y]:
-        item.set_axis_off()
-        item.get_legend().remove()
-    fig.tight_layout()
-    fig.savefig(FIGURE_DIR / 'sty0-n_scatterplot_reg.svg', dpi=600)
+
+    fig = plt.figure(figsize=(6, 2.5))
+    gs = fig.add_gridspec(1, 2, wspace=0.5)
+    ax = plot_sty0_n_scatter(fig, gs[0, 0], data, clusters, PALETTE, show_legend=False, panel_label='a')
+    ax.text(0.05, 0.95, 'All data', ha='left', va='top', transform=ax.transAxes)
+    ax = plot_sty0_n_scatter(fig, gs[0, 1], data_no_oxygen, clusters, PALETTE, show_legend=True, panel_label='b')
+    ax.text(0.05, 0.95, 'No O$_2$', ha='left', va='top', transform=ax.transAxes)
+    fig.savefig(FIGURE_DIR / 'sty0-n_scatterplot.svg', dpi=600, bbox_inches='tight')
 
     # ------------------------------------------------------------------------------------------------------------------
 
     # Normalization
     log1p_list = ['LHSV_mlhg', 'STY0']
+    data[log1p_list] = np.log1p(data[log1p_list])
     data_no_oxygen[log1p_list] = np.log1p(data_no_oxygen[log1p_list])
+    print(data.columns)
 
     # ------------------------------------------------------------------------------------------------------------------
 
-    fig = plt.figure(figsize=(4, 4))
-    gs = fig.add_gridspec(1, 1)
-    ax = []
-    ax.append(gs[0, 0].subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0))
-    ax_joint = fig.add_subplot(ax[0][1, 0])
-    ax_x = fig.add_subplot(ax[0][0, 0], sharex=ax_joint)
-    ax_y = fig.add_subplot(ax[0][1, 1], sharey=ax_joint)
-    for i, cluster in enumerate(clusters):
-        sns.regplot(ax=ax_joint, data=data_no_oxygen[data_no_oxygen['Cluster_title'] == cluster], x='STY0', y='n', label=cluster, color=PALETTE[i], robust=True)
-    ax_joint.legend()
-    sns.move_legend(ax_joint, loc='upper left', bbox_to_anchor=(0.0, 1.0), frameon=False, ncols=1, title=None)
-    ax_joint.set(xlabel='ln( 1 + STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$ )', ylabel='n /', xlim=(0, 4), ylim=(0, 0.3))
-    sns.kdeplot(ax=ax_x, data=data_no_oxygen, x='STY0', hue='Cluster_title', hue_order=clusters, palette=PALETTE, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    sns.kdeplot(ax=ax_y, data=data_no_oxygen, y='n', hue='Cluster_title', hue_order=clusters, palette=PALETTE, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    for item in [ax_x, ax_y]:
-        item.set_axis_off()
-        item.get_legend().remove()
-    fig.tight_layout()
-    fig.savefig(FIGURE_DIR / 'sty0-n_scatterplot_norm_reg_no_oxygen.svg', dpi=600)
-    print(data.columns)
+    fig = plt.figure(figsize=(6, 2.5))
+    gs = fig.add_gridspec(1, 2, wspace=0.5)
+    ax = plot_sty0_n_scatter(fig, gs[0, 0], data, clusters, PALETTE, show_legend=False, panel_label='a', reg=True, log_scale=False)
+    ax.set(xlabel='ln( 1 + STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$ )', xlim=(0, 4), ylim=(0, 0.3), yticks=[0, 0.1, 0.2, 0.3])
+    ax.text(0.05, 0.95, 'All data', ha='left', va='top', transform=ax.transAxes)
+    ax = plot_sty0_n_scatter(fig, gs[0, 1], data_no_oxygen, clusters, PALETTE, show_legend=True, panel_label='b', reg=True, log_scale=False)
+    ax.set(xlabel='ln( 1 + STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$ )', xlim=(0, 4), ylim=(0, 0.3), yticks=[0, 0.1, 0.2, 0.3])
+    ax.text(0.05, 0.95, 'No O$_2$', ha='left', va='top', transform=ax.transAxes)
+    fig.savefig(FIGURE_DIR / 'sty0-n_scatterplot_norm_reg.svg', dpi=600, bbox_inches='tight')
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -167,8 +205,10 @@ if __name__ == "__main__":
     # Calculate Spearman correlation coefficients (univariate and covariance-controlled)
     spearmanr_ = np.empty((len(features), len(clusters)))
     spearmanr_covar = np.empty((len(features), len(clusters)))
+    partial_spearmanr = np.empty((len(features), len(clusters)))
     pval_ = np.empty((len(features), len(clusters)))
     pval_covar = np.empty((len(features), len(clusters)))
+    pval_partial_spearman = np.empty((len(features), len(clusters)))
 
     for i, feature in enumerate(features):
         for j, cluster in enumerate(clusters):
@@ -185,14 +225,21 @@ if __name__ == "__main__":
             # Skip when feature is itself a covariate (degenerate residuals)
             if feature in ['STY0', 'O_content']:
                 spearmanr_covar[i, j], pval_covar[i, j] = np.nan, np.nan
+                partial_spearmanr[i, j], pval_partial_spearman[i, j] = np.nan, np.nan
             else:
-                rho, pval = stats_deact.partial_corr_xcovar(
+                rho, pval = stats_analysis.partial_corr_xcovar(
                     x=data.loc[data['Cluster_title'] == cluster, feature].values,
                     y=data.loc[data['Cluster_title'] == cluster, 'n'].values,
                     covars=[data.loc[data['Cluster_title'] == cluster, 'STY0'].values,
                             data.loc[data['Cluster_title'] == cluster, 'O_content'].values]
                 )
                 spearmanr_covar[i, j], pval_covar[i, j] = rho, pval
+
+                rho, pval = stats_analysis.pg_partial_spearman(
+                    df=data.loc[data['Cluster_title'] == cluster, :],
+                    x=feature, y='n', z=['STY0', 'O_content']
+                )
+                partial_spearmanr[i, j], pval_partial_spearman[i, j] = rho, pval
 
     # ------------------------------------------------------------------------------------------------------------------
 
@@ -215,9 +262,9 @@ if __name__ == "__main__":
         ax.scatter(spearmanr_[:, i], y, color=rgbas, s=80, zorder=3, marker='o', label=cluster)
 
         # Covariance-controlled Spearman ρ (triangle)
-        alphas = np.clip(norm(np.nan_to_num(pval_covar[:, i], nan=1.0)), 0.0, 0.8)
+        alphas = np.clip(norm(np.nan_to_num(pval_partial_spearman[:, i], nan=1.0)), 0.0, 0.8)
         rgbas = [mcolors.to_rgba(PALETTE[i], alpha=1-a) for a in alphas]
-        ax.scatter(spearmanr_covar[:, i], y, color=rgbas, s=80, zorder=3, marker='^')
+        ax.scatter(partial_spearmanr[:, i], y, color=rgbas, s=80, zorder=3, marker='^')
 
     ax.set_yticks(y)
     ax.set_yticklabels([feature_labels.get(feature, '').split(' /')[0] for feature in features])
@@ -227,7 +274,8 @@ if __name__ == "__main__":
     ax.axvline(0, color='k', linewidth=2.0, linestyle='--', zorder=2)
 
     # Colorbar (p-value)
-    grey_cmap = mcolors.LinearSegmentedColormap.from_list('pval_grey', ['#2C2C2A', '#F1EFE8'])
+    grey_cmap = mcolors.LinearSegmentedColormap.from_list('pval_grey', ['#5A5A5A', '#F1EFE8'])
+
     cb = ColorbarBase(cax, cmap=grey_cmap, orientation='vertical', norm=mcolors.LogNorm(vmin=0.01, vmax=0.2))
     cb.ax.set_ylabel('p-value', rotation=270, verticalalignment='baseline')
     cb.set_ticks([0.01, 0.05, 0.1, 0.2])
@@ -242,7 +290,7 @@ if __name__ == "__main__":
         Line2D([0], [0], marker='o', color='w', markerfacecolor=PALETTE[2], markersize=8, label=clusters[2]),
         Line2D([0], [0], marker='o', color='w', markerfacecolor='w', markersize=8, label='Metric'),
         Line2D([0], [0], marker='o', color='w', markerfacecolor='k', markersize=8, label='Univariate'),
-        Line2D([0], [0], marker='^', color='w', markerfacecolor='k', markersize=8, label='Covar-control')
+        Line2D([0], [0], marker='^', color='w', markerfacecolor='k', markersize=8, label='Partial')
     ]
     leg = ax.legend(handles=legend_elements, frameon=False, loc='upper left', facecolor='w')
     for text in leg.get_texts():

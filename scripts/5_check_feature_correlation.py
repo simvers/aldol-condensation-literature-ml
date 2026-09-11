@@ -1,3 +1,13 @@
+"""
+Feature-feature and feature-target (STY, n) correlation plots: Pearson/Spearman
+correlation heatmaps of the reaction-condition and catalyst features, plus
+per-feature scatter-kde plots against STY and deactivation rate n.
+
+Reads:  data/processed/data_engineered{SUFFIX}.csv, data/processed/data_deactivation{SUFFIX}.csv
+Writes: figures/feature_correlation/*.svg
+Edit before running: SUFFIX, REAC_INPUT, CAT_INPUT
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -18,11 +28,11 @@ plt.rcParams["font.size"] = 8
 
 # Context variables
 ROOT = Path(__file__).resolve().parents[1]
-SUFFIX = '_noSi'  # ''
+SUFFIX = '_noSi'  # '' to include Si in the engineered feature set
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 
 # Features
-REAC_INPUT = [
+REAC_INPUT = [  # reaction condition features
     'LHSV_mlhg',
     'Ratio_Ac_Fa', 'Ratio_Stab_Fa',
     'Temperature_K',
@@ -30,7 +40,7 @@ REAC_INPUT = [
     'Stabilizer',
     'O_content',
 ]
-CAT_INPUT = [
+CAT_INPUT = [  # catalyst (engineered) features
     'SSA_m2g',
     'av_cov_rad',
     'av_n_val',

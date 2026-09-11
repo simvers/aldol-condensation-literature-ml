@@ -1,3 +1,12 @@
+"""
+K-means clustering on binarized catalyst composition to group catalysts into families
+(e.g. Al-Cs-Ti-P, Si-Al-Cs-P, P-V-Ti-Si), plus PCA / t-SNE visualisation of composition space.
+
+Reads:  data/processed/data_processed.csv, data/processed/elements.csv
+Writes: data/processed/data_clustered.csv, data/processed/centroids.csv, figures/clustering/*.svg
+Edit before running: BINARIZE, N_CLUSTER, RS
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -19,10 +28,10 @@ plt.rcParams["font.size"] = 8
 
 ROOT = Path(__file__).resolve().parents[1]
 
-PALETTE = ["#009688", "#1565C0", "#AD1457"]
-BINARIZE = True
-N_CLUSTER = 3 if BINARIZE else 4
-RS = 54321
+PALETTE = ["#009688", "#1565C0", "#AD1457"]  # one color per cluster
+BINARIZE = True  # cluster on element presence/absence rather than molar fraction
+N_CLUSTER = 3 if BINARIZE else 4  # number of catalyst families to fit
+RS = 54321  # random seed for K-means initialisation
 
 if __name__ == "__main__":
 

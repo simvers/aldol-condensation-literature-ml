@@ -1,3 +1,12 @@
+"""
+STY model variant: same cross-validated (doi-grouped) pipeline as 6_2, but using
+one-hot-encoded catalyst clusters instead of engineered composition features.
+
+Reads:  data/processed/data_engineered{DATA_TYPE}.csv
+Writes: figures/ML_STY/CV_OHE/<model>/*.svg
+Edit before running: DATA_TYPE, RS, REAC_INPUT, TCV_TYPE, MODEL_TO_TRAIN
+"""
+
 import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -15,19 +24,23 @@ ROOT = Path(__file__).resolve().parents[1]
 warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
 
-RS = 10
+RS = 10  # random seed for CV folding and model fitting
 
-DATA_TYPE = '_noSi'  # ''
+DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 REAC_INPUT = ['LHSV_mlhg', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 'Temperature_K', 'Ac_source']
-CAT_INPUT = ['Cluster_title']
+CAT_INPUT = ['Cluster_title']  # one-hot-encoded catalyst cluster, in place of engineered features
 INPUT = REAC_INPUT + CAT_INPUT
 OUTPUT = 'STY_Acryl_mmolhg'
 
-TCV_TYPE = 'stratified-grouped'  # 'stratified', 'grouped', 'stratified-grouped'
+# CV folding: 'stratified' balances a continuous variable (below: LHSV) across folds,
+# 'grouped' keeps each doi entirely in one fold (no leakage across papers),
+# 'stratified-grouped' does both at once
+TCV_TYPE = 'stratified-grouped'
 N_FOLD = 4
 
-MODEL_TO_TRAIN = ['lgbm_reg', 'xgboost_reg']  # 'xgboost_reg', 'lgbm_reg', 'rf_reg', 'knn_reg', 'svr_reg', 'gp'
+MODEL_TO_TRAIN = ['lgbm_reg', 'xgboost_reg']  # keys from config/ML_models_STY.py's model_config
+# MODEL_TO_TRAIN = ['xgboost_reg', 'lgbm_reg', 'rf_reg', 'knn_reg', 'svr_reg', 'gp']
 
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 

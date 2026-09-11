@@ -1,3 +1,12 @@
+"""
+Robustness check: refits one STY model across many random seeds (CV folds + model
+init) and saves per-seed CV scores and SHAP values for stability analysis (plotted by 6_6).
+
+Reads:  data/processed/data_engineered{DATA_TYPE}.csv
+Writes: data/ML_models_STY/{MODEL_NAME}_robustness_data.pkl, figures/ML_STY/robustness/individual/*.svg
+Edit before running: DATA_TYPE, MODEL_NAME, REAC_INPUT, CAT_INPUT, TCV_TYPE, N_RS
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -24,7 +33,7 @@ plt.rcParams["font.size"] = 8
 # -----------------------------------------------------------------------------------------
 # Configuration
 
-DATA_TYPE = '_noSi'
+DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 REAC_INPUT = ['LHSV_mlhg', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 'Temperature_K', 'Ac_source']
 CAT_INPUT = ['SSA_m2g', 'av_cov_rad', 'av_n_val', 'var_cov_rad']
@@ -33,9 +42,11 @@ OUTPUT = 'STY_Acryl_mmolhg'
 
 # Run the models sequentially: runtime ∝ len(param_grid) × N_RS
 MODEL_NAME = 'lgbm_reg'  # lgbm_reg, rf_reg, xgboost_reg
+# CV folding: 'stratified' balances a continuous variable (LHSV) across folds, 'grouped'
+# keeps each doi entirely in one fold (no leakage across papers), 'stratified-grouped' does both
 TCV_TYPE = 'stratified-grouped'
 N_FOLD = 4
-N_RS = 20  # number of random states
+N_RS = 20  # number of random states to refit and average stability over
 
 FIGURE_DIR = ROOT / 'figures/ML_STY/robustness/individual'
 

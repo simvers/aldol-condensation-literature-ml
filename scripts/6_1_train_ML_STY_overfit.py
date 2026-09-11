@@ -1,3 +1,12 @@
+"""
+Illustrates why a single train/test split score is not reproducible: trains a shallow
+XGBoost on STY across a few random seeds and compares train vs. held-out test scores.
+
+Reads:  data/processed/data_engineered{DATA_TYPE}.csv
+Writes: figures/ML_STY/overfitting/<model>_RS<seed>/*.svg
+Edit before running: RSS, DATA_TYPE, MODEL_TO_TRAIN, TT_TYPE, TCV_TYPE
+"""
+
 import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -15,9 +24,9 @@ ROOT = Path(__file__).resolve().parents[1]
 warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
 
-RSS = [18, 12]
+RSS = [18, 12]  # random seeds compared to show split-to-split score variance
 
-DATA_TYPE = '_noSi'  # ''
+DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 REAC_INPUT = ['LHSV_mlhg', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 'Temperature_K',
               'Ac_source', 'Fa_source', 'Stabilizer', 'O_content',
@@ -26,15 +35,17 @@ CAT_INPUT = ['av_cov_rad', 'av_n_val', 'var_cov_rad', 'var_n_val', 'SSA_m2g']
 INPUT = REAC_INPUT + CAT_INPUT
 OUTPUT = 'STY_Acryl_mmolhg'
 
-# Train-test split type: 'stratified', 'grouped', 'stratified-grouped'
-TT_TYPE = 'stratified' 
+# Train-test split: 'stratified' balances a continuous variable (below: LHSV) across the
+# split, 'grouped' keeps each doi entirely on one side (no leakage across papers),
+# 'stratified-grouped' does both at once
+TT_TYPE = 'stratified'
 TEST_SIZE = 0.2
 
-# Train-CV folding type: 'stratified', 'grouped', 'stratified-grouped'
+# Train-CV folding: same three options as above, applied per fold instead of once
 TCV_TYPE = 'stratified'
 N_FOLD = 4
 
-MODEL_TO_TRAIN = ['xgboost_hreg']
+MODEL_TO_TRAIN = ['xgboost_hreg']  # keys from config/ML_models_STY.py's model_config
 
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 

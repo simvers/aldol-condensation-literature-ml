@@ -1,3 +1,12 @@
+"""
+Main STY model: cross-validated (doi-grouped), fits on all data using engineered
+composition features (no held-out test split).
+
+Reads:  data/processed/data_engineered{DATA_TYPE}.csv
+Writes: figures/ML_STY/CV_feateng/<model>/*.svg
+Edit before running: DATA_TYPE, RS, REAC_INPUT, CAT_INPUT, TCV_TYPE, MODEL_TO_TRAIN
+"""
+
 import sys, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -15,19 +24,22 @@ ROOT = Path(__file__).resolve().parents[1]
 warnings.filterwarnings("ignore")
 plt.rcParams["font.size"] = 8
 
-RS = 10
+RS = 10  # random seed for CV folding and model fitting
 
-DATA_TYPE = '_noSi'  # ''
+DATA_TYPE = '_noSi'  # '' to include Si in the engineered feature set
 
 REAC_INPUT = ['LHSV_mlhg', 'Ratio_Ac_Fa', 'Ratio_Stab_Fa', 'Temperature_K', 'Ac_source']
 CAT_INPUT = ['SSA_m2g', 'av_cov_rad', 'av_n_val', 'var_cov_rad']
 INPUT = REAC_INPUT + CAT_INPUT
 OUTPUT = 'STY_Acryl_mmolhg'
 
-TCV_TYPE = 'stratified-grouped'  # 'stratified', 'grouped', 'stratified-grouped'
+# CV folding: 'stratified' balances a continuous variable (below: LHSV) across folds,
+# 'grouped' keeps each doi entirely in one fold (no leakage across papers),
+# 'stratified-grouped' does both at once
+TCV_TYPE = 'stratified-grouped'
 N_FOLD = 4
 
-MODEL_TO_TRAIN = ['lgbm_reg']
+MODEL_TO_TRAIN = ['lgbm_reg']  # keys from config/ML_models_STY.py's model_config
 # MODEL_TO_TRAIN = ['xgboost_reg', 'lgbm_reg', 'rf_reg', 'knn_reg', 'svr_reg', 'gp']
 
 # Uncomment to run lgbm_reg without DOI grouping

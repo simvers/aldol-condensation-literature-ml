@@ -1,3 +1,13 @@
+"""
+Extract digitized time-on-stream deactivation curves per literature source, fit
+power-law / exponential / Langmuir deactivation models, and merge the best-fit
+STY0/n parameters back into the reaction-condition data.
+
+Reads:  data/processed/data_engineered{suffix}.csv, data/raw/data_deactivation/*.xlsx
+Writes: data/processed/data_deactivation{suffix}.csv, figures/deactivation_modelling/*.svg / *.png
+Edit before running: DROP_Si, BEST_MODEL, N_PARAMS
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -16,41 +26,13 @@ plt.rcParams["font.size"] = 8
 ROOT = Path(__file__).resolve().parents[1]
 VERBOSE = True
 
-DROP_Si = True
-BEST_MODEL = 'exp2'
+DROP_Si = True  # use the Si-excluded engineered feature set as input
+BEST_MODEL = 'exp2'  # which fitted model's STY0/n is kept in the output data
 PALETTE = ["#009688", "#1565C0", "#AD1457"]
 FIT_CMAP = 'cividis'
 CV_CLIP = 10       # clip CV before plotting because 3-param models produce unbounded CV
-DEBUG = False
-N_PARAMS = 2
-
-
-def plot_sty0_n_scatter(fig, gs_cell, data, clusters, palette, show_legend, panel_label):
-    # STY0 vs n scatter with marginal KDEs — called for the full dataset and the oxygen-free subset
-    sub_gs = gs_cell.subgridspec(2, 2, width_ratios=[5, 1], height_ratios=[1, 5], wspace=0, hspace=0)
-    ax_joint = fig.add_subplot(sub_gs[1, 0])
-    ax_x = fig.add_subplot(sub_gs[0, 0], sharex=ax_joint)
-    ax_y = fig.add_subplot(sub_gs[1, 1], sharey=ax_joint)
-
-    sns.scatterplot(ax=ax_joint, data=data, x='STY0', y='n', hue='Cluster_title', hue_order=clusters, palette=palette, alpha=0.6)
-    if show_legend:
-        sns.move_legend(ax_joint, loc='center left', bbox_to_anchor=(1.25, 0.5), frameon=False, title=None)
-    else:
-        ax_joint.legend().remove()
-    ax_joint.set(xscale='symlog', xlim=(0, None), ylim=(0, 1),
-                 xlabel='STY$_{0}$ / mmol h$^{-1}$ g$^{-1}$', ylabel='n /')
-    ax_joint.set_yscale('symlog', linthresh=1e-2)
-    ax_joint.xaxis.set_major_formatter(mticker.ScalarFormatter())
-    ax_joint.yaxis.set_major_formatter(mticker.ScalarFormatter())
-
-    sns.kdeplot(ax=ax_x, data=data, x='STY0', hue='Cluster_title', hue_order=clusters, palette=palette, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    sns.kdeplot(ax=ax_y, data=data, y='n', hue='Cluster_title', hue_order=clusters, palette=palette, fill=True, alpha=0.25, clip=(0, None), cut=1)
-    for item in [ax_x, ax_y]:
-        item.set_axis_off()
-        item.get_legend().remove()
-
-    # Number plot
-    ax_joint.text(-0.2/5*6, 1.1/5*6, panel_label, fontsize=10, fontweight='bold', fontfamily='arial', transform=ax_joint.transAxes)
+DEBUG = False  # print per-catalyst fit diagnostics
+N_PARAMS = 2  # 2-parameter (STY_inf = 0) or 3-parameter deactivation models
 
 
 if __name__ == "__main__":
@@ -170,15 +152,8 @@ if __name__ == "__main__":
     data_deactivation = data_deactivation.rename(columns={BEST_MODEL + '_STY0': 'STY0', BEST_MODEL + '_n': 'n'})
     data_deactivation.loc[:, initial_columns + ['STY0', 'n']].to_csv(ROOT / f'data/processed/data_deactivation{suffix}.csv', index=False)
 
-    # STY-n scatter plot per cluster
-    clusters = np.sort(data['Cluster_title'].unique())
-    fig = plt.figure(figsize=(6, 2.5))
-    gs = fig.add_gridspec(1, 2, wspace=0.5)
-    plot_sty0_n_scatter(fig, gs[0, 0], data_deactivation, clusters, PALETTE, show_legend=False, panel_label='a')
-    plot_sty0_n_scatter(fig, gs[0, 1], data_deactivation.loc[data_deactivation['O_content'] < 0.00001], clusters, PALETTE, show_legend=True, panel_label='b')
-    fig.savefig(ROOT / f'figures/deactivation_modelling/{BEST_MODEL}_sty0-n_scatterplot.svg', dpi=300, format='svg', bbox_inches='tight')
-
     # Parity plot: STY0 prdicted vs STY experimental
+    clusters = np.sort(data['Cluster_title'].unique())
     fig, ax = plt.subplots(1, 1, figsize=(4, 4))
     sns.scatterplot(ax=ax, data=data_deactivation, x='STY0', y='STY_Acryl_mmolhg',
                     hue='Cluster_title', hue_order=clusters, palette=PALETTE)

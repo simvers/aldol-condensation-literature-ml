@@ -246,6 +246,8 @@ def impute_ssa(composition, elements):
                           columns=imputer.get_feature_names_out(), index=composition.index)
 
     # Impute values
+    print(f"Imputing {missing_index.sum()} SSA values from {len(missing_index)} total observations")
+    print(f"Imputing {missing_index.loc[composition['LHSV_mlhg'].notna()].sum()} SSA values from {composition['LHSV_mlhg'].notna().sum()} observations with STY")
     if not composition.loc[missing_index, 'SSA_m2g'].isna().all():
         raise ValueError("Expected all SSA_m2g values at missing_index to be NaN before imputation")
     composition.loc[missing_index, 'SSA_ratio'] = result.loc[missing_index, 'SSA_ratio']

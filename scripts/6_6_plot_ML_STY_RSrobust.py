@@ -1,3 +1,12 @@
+"""
+Plots SHAP stability (beeswarm + feature importance boxplot) and CV score reproducibility
+across models, from the per-model robustness artifacts saved by 6_5.
+
+Reads:  data/ML_models_STY/{model}_robustness_data.pkl (one per entry in MODEL_COMP)
+Writes: figures/ML_STY/robustness/comparison/*.svg
+Edit before running: MODEL_COMP
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -18,7 +27,7 @@ plt.rcParams["font.size"] = 8
 # -----------------------------------------------------------------------------------------
 # Configuration
 
-MODEL_COMP = ['rf_reg', 'xgboost_reg', 'lgbm_reg']
+MODEL_COMP = ['rf_reg', 'xgboost_reg', 'lgbm_reg']  # models to compare, must have a 6_5 robustness pkl
 FIGURE_DIR = ROOT / 'figures/ML_STY/robustness/comparison'
 
 # Colors per model (extend if MODEL_COMP grows beyond 4)

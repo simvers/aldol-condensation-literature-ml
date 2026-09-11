@@ -8,10 +8,10 @@ The repository ingests a digitized literature dataset (catalyst composition, rea
 
 ```bash
 conda env create -f environment.yml
-conda activate ml_py311
+conda activate simvers_ml_py311
 ```
 
-There is no build system or test harness. Scripts are not parameterized via CLI — edit variables near the top of each script (e.g. `DATA_TYPE`, `RS`) and re-run. **Always run from the repository root**, since all paths are relative to it:
+There is no build system or test harness. Scripts are not parameterized via CLI — each script has a short docstring at the top listing what it reads/writes and which variables to edit before running. **Always run from the repository root**, since all paths are relative to it:
 
 ```bash
 python scripts/0_preprocess_dataset.py
@@ -32,7 +32,7 @@ Scripts in `scripts/` are numbered to indicate pipeline order. Each stage reads 
 | `5_check_feature_correlation.py` | Feature–feature and feature–target (STY, n) correlation plots. |
 | `6_1_train_ML_STY_overfit.py` | Single train/test split on a shallow XGBoost — illustrates why a single split score is not reproducible. |
 | `6_2_train_ML_STY_CV_feateng.py` | Main STY model: cross-validated, doi-grouped, with engineered features. |
-| `6_3_train_ML_STY_CV_OHE.py` | STY model variant using one-hot-encoded catalyst clsuters instead of engineered features. |
+| `6_3_train_ML_STY_CV_OHE.py` | STY model variant using one-hot-encoded catalyst clusters instead of engineered features. |
 | `6_4_train_ML_STY_CV_elem.py` | STY model variant using element composition. |
 | `6_5_train_ML_STY_RSrobust.py` | Robustness check: trains each model across multiple random seeds, saves SHAP values per seed. |
 | `6_6_plot_ML_STY_RSrobust.py` | Plots SHAP stability (beeswarm + feature importance boxplot) from `6_5` artifacts. |
@@ -49,7 +49,8 @@ data/
     data_deactivation/        one Excel per literature source (time-on-stream curves)
     atomic_features.json      elemental property table
     mol_properties/           physicochemical properties for reactants / stabilizers
-  processed/                  generated data, pipeline intermediates 
+  processed/                  generated data, pipeline intermediates
+  ML_models_STY/              per-model robustness data (*.pkl) saved by 6_5_train_ML_STY_RSrobust.py
 
 config/
   ML_models_STY.py            model configs for STY/yield targets
@@ -60,10 +61,10 @@ src/
   preprocessing.py            composition encoding, molar flow, SSA imputation
   features_engineering.py     weighted-average featurization
   deactivation_modelling.py   Excel extraction and deactivation curve fitting
-  deactivation_models.py      power-law / exponential / Langmuir fit functions
+  function_fitting.py         power-law / exponential / Langmuir fit functions
   ml_training.py              CV splitters, train/test split, GridSearchCV wrapper, preprocessor builder
   ml_plotting.py              learning curves, parity plots, SHAP, feature importance
-  stats_deact.py              partial correlation helpers
+  stats_analysis.py           partial correlation helpers
   utils.py                    small generic helpers
 
 figures/                      all output figures, organised by script
@@ -73,7 +74,7 @@ figures/                      all output figures, organised by script
 
 If you use this code or dataset, please cite the associated publication:
 
-> Verstraeten, S., Palai, Y. N., Makshina, E., Sels, B. (date). *Title to be added.* Journal, DOI.
+> Verstraeten, S., Palai, Y. N., Makshina, E., Sels, B. TBD.
 
 ## License
 

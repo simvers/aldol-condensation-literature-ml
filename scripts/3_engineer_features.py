@@ -1,3 +1,14 @@
+"""
+Build ML-ready features from catalyst composition and elemental physicochemical
+properties (composition-weighted mean/variance of atomic properties), plus PCA of the
+resulting feature space.
+
+Reads:  data/processed/data_clustered.csv, data/processed/elements.csv, data/raw/atomic_features.json
+Writes: data/processed/data_engineered{suffix}.csv, data/processed/engineered_features.csv,
+        figures/features_engineering/*.svg / *.png
+Edit before running: DROP_Si, SELECTED_FEATURES
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))

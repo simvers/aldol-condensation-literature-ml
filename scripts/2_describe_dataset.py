@@ -1,3 +1,11 @@
+"""
+Descriptive figures of the literature dataset: catalyst publication history, composition
+heatmap by cluster, and reaction condition distributions/correlations.
+
+Reads:  data/processed/data_clustered.csv, data/processed/elements.csv, data/processed/centroids.csv
+Writes: figures/description/*.svg, figures/description/*.png
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
